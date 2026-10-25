@@ -4,7 +4,6 @@
   Interactive BuyBox for the product detail page.
   Features:
   - "Price Am" numeric bargaining drawer with fast % discount presets
-  - Seller contact access after an accepted offer
   - Variant selection, Add to Cart, Buy Now, and Wishlist
   - Nigerian Marketplace Safety Tips
 */
@@ -13,15 +12,11 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  CheckCircle2,
   Clock,
-  Copy,
   Flag,
   Handshake,
   Heart,
   MessageSquare,
-  Phone,
-  PhoneCall,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -33,7 +28,7 @@ import {
 import { addWishlistItem, removeWishlistItem } from "@/lib/wishlist";
 import { createOffer } from "@/lib/offers";
 import type { VariantSelection } from "@/lib/offers";
-import { getProductContact, type Product } from "@/lib/products";
+import type { Product } from "@/lib/products";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { notifyCommerceChanged } from "@/lib/commerce-events";
 import { openListingConversation } from "@/lib/chat";
@@ -86,8 +81,6 @@ export function BuyBox({ product }: { product: Product }) {
 
   const inStock = availableStock > 0;
 
-  const [sellerContactPhone, setSellerContactPhone] = useState<string | null>(null);
-  const [copiedPhone, setCopiedPhone] = useState(false);
   const [reported, setReported] = useState(false);
 
   const sellerAvatar = product.sellerStoreImage || product.sellerProfileImage;
@@ -169,25 +162,6 @@ export function BuyBox({ product }: { product: Product }) {
       router.push(`/conversations/${response.conversation._id}`);
     } catch (err) {
       showApiError(err, "Could not open the listing conversation.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onRevealContact() {
-    setError(null);
-    setNotice(null);
-    if (!tokenStore.get()) {
-      router.push("/login");
-      return;
-    }
-
-    setBusy("contact");
-    try {
-      const response = await getProductContact(product._id);
-      setSellerContactPhone(response.contactPhone);
-    } catch (err) {
-      showApiError(err, "Seller contact details are not available yet.");
     } finally {
       setBusy(null);
     }
@@ -389,63 +363,8 @@ export function BuyBox({ product }: { product: Product }) {
           </div>
         </div>
 
-        {/* Buttons: Show Contact & Start Chat */}
+        {/* Public listings keep communication inside PriceAm chat. */}
         <div className="space-y-2.5 pt-1">
-          {/* Show Contact Button & Reveal State */}
-          {!sellerContactPhone ? (
-            <button
-              type="button"
-              onClick={onRevealContact}
-              disabled={busy !== null}
-              className="w-full min-h-12 rounded-2xl bg-success hover:bg-[#18763f] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors active:scale-[0.99] disabled:opacity-60"
-            >
-              <Phone className="h-4.5 w-4.5" />
-              <span>{busy === "contact" ? "Checking deal…" : "Show contact after accepted offer"}</span>
-            </button>
-          ) : (
-            <div className="w-full rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 flex flex-col gap-2.5 animate-fade-in-up">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                    <Phone className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="font-mono font-bold text-sm sm:text-base text-ink">
-                    {sellerContactPhone}
-                  </span>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(sellerContactPhone);
-                      setCopiedPhone(true);
-                      setTimeout(() => setCopiedPhone(false), 2000);
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-emerald-200 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
-                  >
-                    <Copy className="h-3 w-3" />
-                    <span>{copiedPhone ? "Copied!" : "Copy"}</span>
-                </button>
-              </div>
-              <div className="flex gap-2 pt-0.5">
-                  <a
-                    href={`tel:${sellerContactPhone}`}
-                    className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                  >
-                    <PhoneCall className="h-3.5 w-3.5" /> Call Now
-                  </a>
-                  <a
-                    href={`https://wa.me/${sellerContactPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in your listing: "${product.title}" on PriceAm.`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 py-2 px-3 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                  >
-                    WhatsApp
-                  </a>
-              </div>
-            </div>
-          )}
-
-          {/* Start Chat Button */}
           <button
             type="button"
             disabled={busy !== null}

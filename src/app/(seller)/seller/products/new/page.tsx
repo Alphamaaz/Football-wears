@@ -424,7 +424,7 @@ export default function NewProductPage() {
                 <div>
                   <h2 className="text-base font-bold text-ink">Photos &amp; Video Showcase</h2>
                   <p className="text-xs text-muted">
-                    First image is your hero cover. Add up to {maxProductMedia} media files (up to 15 MB each; MP4 videos up to 20s).
+                    Use a 1200 × 900 px (4:3 landscape) cover so your full product fits every listing card. Minimum 800 × 600 px.
                   </p>
                 </div>
               </div>
@@ -544,11 +544,11 @@ export default function NewProductPage() {
             {activeMediaTab !== "video" && (
               <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                 {/* 1. Cover Photo Slot */}
-                <div className="relative aspect-square overflow-hidden rounded-2xl border-2 border-dashed border-primary/40 bg-primary-soft/20 flex flex-col items-center justify-center">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border-2 border-dashed border-primary/40 bg-primary-soft/20 flex flex-col items-center justify-center sm:col-span-2">
                   {cover ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={cover.previewUrl} alt="Selected cover" className="h-full w-full object-cover" />
+                      <img src={cover.previewUrl} alt="Selected cover" className="h-full w-full object-contain" />
                       <span className="absolute left-2.5 top-2.5 rounded-full bg-primary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-soft">
                         Cover
                       </span>
@@ -569,7 +569,7 @@ export default function NewProductPage() {
                     >
                       <ImagePlus className="h-7 w-7" />
                       <span className="text-xs font-bold text-center leading-tight">Add Cover Photo</span>
-                      <span className="text-[10px] text-muted">Primary display</span>
+                      <span className="text-[10px] text-muted">1200 × 900 px · 4:3</span>
                     </button>
                   )}
                 </div>
@@ -649,7 +649,7 @@ export default function NewProductPage() {
             <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line text-xs text-muted flex items-start gap-2.5">
               <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <span>
-                <strong>Seller Advice:</strong> Listings with a clear cover photo, product video, and 4+ photos showing the product from different angles sell much faster!
+                <strong>Photo requirements:</strong> Use a sharp 4:3 landscape cover (recommended 1200 × 900 px), centre the entire item with a little space around it, and avoid screenshots, borders, text, or watermarks. Add up to {maxProductMedia} media files, maximum 15 MB each.
               </span>
             </div>
           </section>

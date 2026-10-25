@@ -32,7 +32,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
               event.currentTarget.src = PRODUCT_IMAGE_PLACEHOLDER;
             }
           }}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
         <span className="absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full bg-ink/45 text-white" aria-hidden>
           <Heart className="h-5 w-5" strokeWidth={2.2} />
@@ -77,7 +77,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
                 el.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
               }
             }}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-contain"
           />
 
           {/* Featured / Condition Tag */}
@@ -185,7 +185,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
               el.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
             }
           }}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-108"
+          className="h-full w-full object-contain"
         />
 
         {/* Top Badges */}

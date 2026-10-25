@@ -4,7 +4,7 @@ import { listProductsServer } from "@/lib/products";
 import { MarketplaceCatalog } from "@/components/MarketplaceCatalog";
 
 export default async function HomePage() {
-  const { products, total } = await listProductsServer({ limit: 36, sort: "featured" });
+  const { products, total } = await listProductsServer({ limit: 18, sort: "featured" });
   return (
     <div className="space-y-3 sm:space-y-4">
       <section className="hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-soft sm:block">

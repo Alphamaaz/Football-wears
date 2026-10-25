@@ -87,6 +87,8 @@ const PRICE_PRESETS = [
   { label: "₦500,000+", min: 500000, max: undefined },
 ];
 
+const PRODUCTS_PER_PAGE = 18;
+
 interface MarketplaceCatalogProps {
   initialProducts?: Product[];
   initialTotal?: number;
@@ -164,6 +166,9 @@ export function MarketplaceCatalog({
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [total, setTotal] = useState(initialTotal);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(Math.ceil(initialTotal / PRODUCTS_PER_PAGE));
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [categorySheetOpen, setCategorySheetOpen] = useState(false);
 
@@ -186,7 +191,8 @@ export function MarketplaceCatalog({
     setLoading(true);
     try {
       const res = await listProducts({
-        limit: 36,
+        page: 1,
+        limit: PRODUCTS_PER_PAGE,
         search: search.trim() || undefined,
         category: selectedCategory || undefined,
         condition: condition || undefined,
@@ -201,6 +207,8 @@ export function MarketplaceCatalog({
       startTransition(() => {
         setProducts(res.products);
         setTotal(res.total);
+        setCurrentPage(res.page);
+        setTotalPages(res.pages);
       });
     } catch (err) {
       console.error("Failed to filter products", err);
@@ -226,6 +234,52 @@ export function MarketplaceCatalog({
     }, 250);
     return () => clearTimeout(timer);
   }, [fetchFilteredProducts]);
+
+  const loadMoreProducts = useCallback(async () => {
+    if (loadingMore || currentPage >= totalPages) return;
+    setLoadingMore(true);
+    try {
+      const res = await listProducts({
+        page: currentPage + 1,
+        limit: PRODUCTS_PER_PAGE,
+        search: search.trim() || undefined,
+        category: selectedCategory || undefined,
+        condition: condition || undefined,
+        inStock: inStockOnly || undefined,
+        state: selectedState !== "All Nigeria" ? selectedState : undefined,
+        negotiable: negotiableOnly ? true : undefined,
+        minPrice: appliedMin,
+        maxPrice: appliedMax,
+        sort,
+      });
+      startTransition(() => {
+        setProducts((current) => {
+          const knownIds = new Set(current.map((product) => product._id));
+          return [...current, ...res.products.filter((product) => !knownIds.has(product._id))];
+        });
+        setTotal(res.total);
+        setCurrentPage(res.page);
+        setTotalPages(res.pages);
+      });
+    } catch (err) {
+      console.error("Failed to load more products", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [
+    loadingMore,
+    currentPage,
+    totalPages,
+    search,
+    selectedCategory,
+    condition,
+    inStockOnly,
+    selectedState,
+    negotiableOnly,
+    appliedMin,
+    appliedMax,
+    sort,
+  ]);
 
   // Handle Preset Price click
   function handlePresetSelect(index: number) {
@@ -795,16 +849,34 @@ export function MarketplaceCatalog({
             </div>
           ) : (
             /* Product List or Grid */
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5"
-                  : "flex flex-col gap-4 sm:gap-6"
-              }
-            >
-              {products.map((p) => (
-                <ProductCard key={p._id} product={p} viewMode={viewMode} />
-              ))}
+            <div className="space-y-6">
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-2 gap-2.5 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3"
+                    : "flex flex-col gap-4 sm:gap-6"
+                }
+              >
+                {products.map((p) => (
+                  <ProductCard key={p._id} product={p} viewMode={viewMode} />
+                ))}
+              </div>
+              {currentPage < totalPages && (
+                <div className="flex flex-col items-center gap-2 border-t border-line pt-5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={loadMoreProducts}
+                    disabled={loadingMore}
+                    className="min-w-44 rounded-xl"
+                  >
+                    {loadingMore ? "Loading listings…" : "Load more listings"}
+                  </Button>
+                  <p className="text-xs text-muted">
+                    Showing {products.length} of {total} listings
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </main>
