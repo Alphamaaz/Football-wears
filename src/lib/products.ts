@@ -43,6 +43,7 @@ export interface Product {
   brand?: string;
   warranty?: string;
   negotiable?: boolean;
+  /** Only returned by seller-owned product endpoints. Never public. */
   contactPhone?: string;
   location?: {
     state?: string;
@@ -60,6 +61,10 @@ export interface Product {
     details?: string;
   };
   status: "active" | "inactive" | "sold";
+  moderationStatus?: "pending" | "approved" | "rejected" | "blocked";
+  moderationReason?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
   isFeatured: boolean;
   viewsCount: number;
   salesCount: number;
@@ -67,11 +72,12 @@ export interface Product {
   ratingCount: number;
   sellerRatingAverage?: number;
   sellerRatingCount?: number;
-  sellerPhone?: string;
   sellerFullName?: string;
   sellerStoreImage?: string;
   sellerProfileImage?: string;
   sellerJoinedAt?: string;
+  sellerApprovalStatus?: "pending" | "approved" | "rejected";
+  sellerKycStatus?: "not_submitted" | "pending" | "approved" | "rejected";
   promotion?: { enabled: boolean; commissionPercent?: number; startsAt?: string; endsAt?: string };
   createdAt: string;
   updatedAt: string;
@@ -124,6 +130,11 @@ export async function listProducts(params: ListProductsParams = {}) {
 /** Client-side public product detail. */
 export async function getProduct(id: string) {
   return api<{ product: Product }>(`/products/${id}`);
+}
+
+/** Buyer/seller contact is available only after an accepted offer. */
+export async function getProductContact(id: string) {
+  return api<{ contactPhone: string }>(`/products/${id}/contact`);
 }
 
 /**

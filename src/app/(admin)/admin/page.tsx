@@ -104,6 +104,7 @@ function CategoryIconView({ iconName, className = "h-5 w-5" }: { iconName: strin
 }
 
 const NAV_SHORTCUTS = [
+  { href: "/admin/listings", title: "Listing Moderation", countKey: "pendingListingsCount" as const, icon: Package, color: "text-primary", bg: "bg-primary/10" },
   { href: "/admin/sellers", title: "Seller Applications", countKey: "pendingSellersCount" as const, icon: Store, color: "text-amber-500", bg: "bg-amber-500/10" },
   { href: "/admin/disputes", title: "Dispute Arbitration", countKey: "openDisputesCount" as const, icon: MessageSquareWarning, color: "text-danger", bg: "bg-danger/10" },
   { href: "/admin/payouts", title: "Seller Payouts", countKey: "eligiblePayoutsCount" as const, icon: BadgeDollarSign, color: "text-primary", bg: "bg-primary/10" },
@@ -814,7 +815,7 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Operational Shortcuts */}
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {NAV_SHORTCUTS.map((item) => {
             const count = queues ? (queues[item.countKey] as number) : 0;
             return (

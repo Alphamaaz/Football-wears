@@ -140,7 +140,15 @@ export function MobileProductDetail({ product, rating, ratingCount }: { product:
           // eslint-disable-next-line @next/next/no-img-element
           <img src={assetUrl(sellerImage)} alt="" />
         ) : <span>{sellerName.charAt(0).toUpperCase()}</span>}
-        <div><h2>{sellerName}</h2><p><CheckCircle2 /> Verified seller{ratingCount > 0 ? ` · ${rating.toFixed(1)} rating` : ""}</p></div>
+        <div>
+          <h2>{sellerName}</h2>
+          <p>
+            {product.sellerKycStatus === "approved" && <><CheckCircle2 /> Identity verified</>}
+            {product.sellerKycStatus !== "approved" && product.sellerApprovalStatus === "approved" && <><CheckCircle2 /> Approved seller</>}
+            {product.sellerKycStatus !== "approved" && product.sellerApprovalStatus !== "approved" && <>Marketplace seller</>}
+            {ratingCount > 0 ? ` · ${rating.toFixed(1)} rating` : ""}
+          </p>
+        </div>
         {product.storeSlug && <Link href={`/store/${product.storeSlug}`}>View Profile</Link>}
       </section>
 

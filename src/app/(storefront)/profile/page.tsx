@@ -494,7 +494,7 @@ export default function ProfilePage() {
                     ) : (
                       <ShieldCheck className="h-3.5 w-3.5" />
                     )}
-                    <span>{user.sellerProfile?.storeName || "Verified Merchant"}</span>
+                    <span>{user.sellerProfile?.storeName || "Seller account"}</span>
                   </span>
                 )}
               </div>

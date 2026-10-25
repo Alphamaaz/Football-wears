@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { Handshake, Heart, MapPin, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { Handshake, Heart, MapPin, Sparkles, Star } from "lucide-react";
 import { assetUrl, PRODUCT_IMAGE_PLACEHOLDER } from "@/lib/api";
 import type { Product } from "@/lib/products";
 
@@ -40,7 +40,12 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
       </Link>
       <div className="p-3">
         <p className="text-lg font-bold tracking-tight text-primary">₦{product.price.toLocaleString()}</p>
-        <Link href={`/products/${product._id}`} className="mt-1 block truncate text-[15px] font-medium text-ink">{product.title}</Link>
+        <Link
+          href={`/products/${product._id}`}
+          className="mt-1 block whitespace-normal break-words text-[15px] font-medium leading-snug text-ink"
+        >
+          {product.title}
+        </Link>
         <p className="mt-2 flex items-center gap-1 truncate text-[11px] text-muted">
           <MapPin className="h-3.5 w-3.5 shrink-0 fill-muted text-muted" /> {locationText}
         </p>
@@ -75,21 +80,6 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-          {/* Badges */}
-          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 items-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 text-sky-700 font-bold text-xs px-2.5 py-1 shadow-xs border border-sky-100">
-              <ShieldCheck className="h-3.5 w-3.5 text-sky-600" />
-              Verified ID
-            </span>
-          </div>
-
-          {/* Enterprise Label */}
-          <div className="absolute bottom-2.5 left-2.5">
-            <span className="inline-flex items-center rounded bg-white/90 backdrop-blur px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-ink shadow-xs">
-              ENTERPRISE
-            </span>
-          </div>
-
           {/* Featured / Condition Tag */}
           <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1">
             {product.isFeatured && (
@@ -106,7 +96,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
             {/* Title & Price Top Row */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-4">
               <Link href={`/products/${product._id}`} className="min-w-0 flex-1 group-hover:text-primary transition-colors">
-                <h3 className="text-base sm:text-lg md:text-xl font-bold text-ink leading-snug line-clamp-2">
+                <h3 className="break-words text-base font-bold leading-snug text-ink sm:text-lg md:text-xl">
                   {product.title}
                 </h3>
               </Link>
@@ -154,9 +144,6 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
             </span>
 
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-amber-500/10 text-amber-600 text-sm" title="Top Verified Seller">
-                👑
-              </span>
               <Link
                 href={`/products/${product._id}`}
                 className="inline-flex h-8 items-center justify-center rounded-xl border border-line bg-surface px-3 text-xs font-bold text-ink hover:border-primary hover:text-primary transition-all"
@@ -261,7 +248,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
 
           {/* Title */}
           <Link href={`/products/${product._id}`} className="block">
-            <h3 className="text-xs sm:text-sm font-bold text-ink leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="break-words text-xs font-bold leading-snug text-ink transition-colors group-hover:text-primary sm:text-sm">
               {product.title}
             </h3>
           </Link>

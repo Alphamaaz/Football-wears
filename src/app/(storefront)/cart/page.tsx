@@ -254,7 +254,7 @@ export default function CartPage() {
                   </div>
                   <span>{group.storeName}</span>
                   <span className="rounded-md bg-surface border border-line px-2 py-0.5 text-[10px] font-medium text-muted">
-                    Verified Seller
+                    Marketplace seller
                   </span>
                 </div>
                 <div className="text-right">

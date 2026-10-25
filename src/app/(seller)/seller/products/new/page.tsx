@@ -351,8 +351,8 @@ export default function NewProductPage() {
     }
 
     try {
-      const response = await createProduct(form);
-      router.push(`/products/${response.product._id}`);
+      await createProduct(form);
+      router.push("/seller/products?submitted=1");
     } catch (err) {
       if (err instanceof ApiRequestError) {
         if (err.errors?.length) {

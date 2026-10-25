@@ -92,6 +92,7 @@ export interface AdminAnalyticsData {
   products: {
     total: number;
     active: number;
+    pendingReview?: number;
     byCategory: Array<{ category: string; count: number }>;
     byState: Array<{ state: string; count: number }>;
   };
@@ -118,6 +119,7 @@ export interface AdminAnalyticsData {
     recent?: RecentOfferItem[];
   };
   queues: {
+    pendingListingsCount?: number;
     pendingSellersCount: number;
     openDisputesCount: number;
     pendingCompletionCount: number;
@@ -140,6 +142,32 @@ export interface AdminAnalyticsData {
   };
 }
 
+export type ListingModerationStatus = "pending" | "approved" | "rejected" | "blocked";
+
+export interface AdminListing {
+  _id: string;
+  title: string;
+  category: string;
+  price: number;
+  condition: "new" | "used";
+  status: "active" | "inactive" | "sold";
+  moderationStatus?: ListingModerationStatus;
+  moderationReason?: string;
+  submittedAt?: string;
+  createdAt: string;
+  coverImage?: { url: string; alt?: string };
+  location?: { city?: string; state?: string };
+  storeName: string;
+  seller?: {
+    _id: string;
+    fullName: string;
+    email: string;
+    contactNumber?: string;
+    isActive: boolean;
+    sellerProfile?: { storeName?: string };
+  };
+}
+
 export async function getAdminAnalytics() {
   return api<{ analytics: AdminAnalyticsData }>("/admin/analytics");
 }
@@ -157,6 +185,34 @@ export async function getAdminUsers(params?: { page?: number; limit?: number; se
 export async function toggleUserStatus(userId: string) {
   return api<{ message: string; user: User }>(`/admin/users/${userId}/toggle-status`, {
     method: "PATCH",
+  });
+}
+
+export async function getAdminListings(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: ListingModerationStatus | "all";
+}) {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.search) query.set("search", params.search);
+  if (params?.status) query.set("status", params.status);
+  const qStr = query.toString();
+  return api<{ listings: AdminListing[]; total: number; page: number; pages: number }>(
+    `/admin/listings${qStr ? `?${qStr}` : ""}`
+  );
+}
+
+export async function moderateListing(
+  productId: string,
+  action: "approve" | "reject" | "block",
+  reason?: string
+) {
+  return api<{ message: string; product: AdminListing }>(`/admin/listings/${productId}/moderate`, {
+    method: "PATCH",
+    body: { action, reason },
   });
 }
 

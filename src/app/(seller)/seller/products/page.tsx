@@ -24,6 +24,7 @@ function SellerProductsList() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justUpdated = searchParams.get("updated") === "1";
+  const justSubmitted = searchParams.get("submitted") === "1";
   const [products, setProducts] = useState<Product[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -146,7 +147,10 @@ function SellerProductsList() {
       </div>
 
       {justUpdated && (
-        <Alert kind="success">Listing was successfully updated.</Alert>
+        <Alert kind="success">Listing changes were submitted for admin review.</Alert>
+      )}
+      {justSubmitted && (
+        <Alert kind="success">Listing submitted. It will become visible to buyers after admin approval.</Alert>
       )}
       {notice && <Alert kind="success">{notice}</Alert>}
       {error && <Alert kind="error">{error}</Alert>}
@@ -245,7 +249,7 @@ function SellerProductsList() {
                 <div className="flex items-center gap-4 min-w-0">
                   {/* Thumbnail */}
                   <Link
-                    href={`/products/${p._id}`}
+                    href={p.moderationStatus === "approved" ? `/products/${p._id}` : `/seller/products/${p._id}/edit`}
                     className="relative shrink-0 overflow-hidden rounded-2xl border border-line bg-sunken"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -260,7 +264,7 @@ function SellerProductsList() {
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
-                        href={`/products/${p._id}`}
+                        href={p.moderationStatus === "approved" ? `/products/${p._id}` : `/seller/products/${p._id}/edit`}
                         className="font-bold text-sm sm:text-base text-ink hover:text-primary transition-colors truncate block"
                       >
                         {p.title}
@@ -273,6 +277,15 @@ function SellerProductsList() {
                         }`}
                       >
                         {p.status}
+                      </span>
+                      <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${
+                        p.moderationStatus === "approved"
+                          ? "border-success/30 bg-success-soft text-success"
+                          : p.moderationStatus === "rejected" || p.moderationStatus === "blocked"
+                            ? "border-danger/30 bg-danger/10 text-danger"
+                            : "border-warning/30 bg-warning/15 text-ink"
+                      }`}>
+                        {p.moderationStatus === "approved" ? "Admin approved" : p.moderationStatus || "Pending review"}
                       </span>
                     </div>
 
@@ -305,14 +318,16 @@ function SellerProductsList() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                  <Link
-                    href={`/products/${p._id}`}
-                    target="_blank"
-                    className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-line bg-surface hover:border-primary hover:text-primary transition-colors"
-                    title="View live marketplace listing"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Link>
+                  {p.moderationStatus === "approved" && p.status === "active" && (
+                    <Link
+                      href={`/products/${p._id}`}
+                      target="_blank"
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-line bg-surface hover:border-primary hover:text-primary transition-colors"
+                      title="View live marketplace listing"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Link>
+                  )}
 
                   <Link href={`/seller/products/${p._id}/edit`}>
                     <Button variant="outline" size="sm" className="rounded-xl px-3 font-semibold">

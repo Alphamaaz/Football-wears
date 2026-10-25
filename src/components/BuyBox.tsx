@@ -4,7 +4,7 @@
   Interactive BuyBox for the product detail page.
   Features:
   - "Price Am" numeric bargaining drawer with fast % discount presets
-  - Direct Seller Contact reveal ("Show Contact / Call Seller")
+  - Seller contact access after an accepted offer
   - Variant selection, Add to Cart, Buy Now, and Wishlist
   - Nigerian Marketplace Safety Tips
 */
@@ -33,7 +33,7 @@ import {
 import { addWishlistItem, removeWishlistItem } from "@/lib/wishlist";
 import { createOffer } from "@/lib/offers";
 import type { VariantSelection } from "@/lib/offers";
-import type { Product } from "@/lib/products";
+import { getProductContact, type Product } from "@/lib/products";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { notifyCommerceChanged } from "@/lib/commerce-events";
 import { openListingConversation } from "@/lib/chat";
@@ -86,13 +86,14 @@ export function BuyBox({ product }: { product: Product }) {
 
   const inStock = availableStock > 0;
 
-  const [contactRevealed, setContactRevealed] = useState(false);
+  const [sellerContactPhone, setSellerContactPhone] = useState<string | null>(null);
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [reported, setReported] = useState(false);
 
   const sellerAvatar = product.sellerStoreImage || product.sellerProfileImage;
   const displayStoreName = product.storeName || product.sellerFullName || "Merchant Store";
-  const sellerContactPhone = product.contactPhone || product.sellerPhone;
+  const identityVerified = product.sellerKycStatus === "approved";
+  const sellerApproved = product.sellerApprovalStatus === "approved";
 
   function formatSellerTenure(dateString?: string): string {
     if (!dateString) return "1+ month on PriceAm";
@@ -168,6 +169,25 @@ export function BuyBox({ product }: { product: Product }) {
       router.push(`/conversations/${response.conversation._id}`);
     } catch (err) {
       showApiError(err, "Could not open the listing conversation.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onRevealContact() {
+    setError(null);
+    setNotice(null);
+    if (!tokenStore.get()) {
+      router.push("/login");
+      return;
+    }
+
+    setBusy("contact");
+    try {
+      const response = await getProductContact(product._id);
+      setSellerContactPhone(response.contactPhone);
+    } catch (err) {
+      showApiError(err, "Seller contact details are not available yet.");
     } finally {
       setBusy(null);
     }
@@ -348,10 +368,17 @@ export function BuyBox({ product }: { product: Product }) {
                 <User className="h-3 w-3 text-muted" />
                 {formatSellerTenure(product.sellerJoinedAt || product.createdAt)}
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[11px] font-bold border border-emerald-500/20">
-                <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                Verified ID
-              </span>
+              {identityVerified ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-success-soft text-success text-[11px] font-bold border border-success/20">
+                  <ShieldCheck className="h-3 w-3" />
+                  Identity verified
+                </span>
+              ) : sellerApproved ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-soft text-primary-darker text-[11px] font-bold border border-primary/20">
+                  <Store className="h-3 w-3" />
+                  Approved seller
+                </span>
+              ) : null}
             </div>
 
             {/* Response time */}
@@ -365,14 +392,15 @@ export function BuyBox({ product }: { product: Product }) {
         {/* Buttons: Show Contact & Start Chat */}
         <div className="space-y-2.5 pt-1">
           {/* Show Contact Button & Reveal State */}
-          {!contactRevealed ? (
+          {!sellerContactPhone ? (
             <button
               type="button"
-              onClick={() => setContactRevealed(true)}
-              className="w-full h-12 rounded-2xl bg-[#00b53f] hover:bg-[#009e37] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+              onClick={onRevealContact}
+              disabled={busy !== null}
+              className="w-full min-h-12 rounded-2xl bg-success hover:bg-[#18763f] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors active:scale-[0.99] disabled:opacity-60"
             >
               <Phone className="h-4.5 w-4.5" />
-              <span>Show contact</span>
+              <span>{busy === "contact" ? "Checking deal…" : "Show contact after accepted offer"}</span>
             </button>
           ) : (
             <div className="w-full rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 flex flex-col gap-2.5 animate-fade-in-up">
@@ -382,11 +410,10 @@ export function BuyBox({ product }: { product: Product }) {
                     <Phone className="h-3.5 w-3.5" />
                   </span>
                   <span className="font-mono font-bold text-sm sm:text-base text-ink">
-                    {sellerContactPhone || "No direct phone provided"}
+                    {sellerContactPhone}
                   </span>
                 </div>
-                {sellerContactPhone && (
-                  <button
+                <button
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(sellerContactPhone);
@@ -397,11 +424,9 @@ export function BuyBox({ product }: { product: Product }) {
                   >
                     <Copy className="h-3 w-3" />
                     <span>{copiedPhone ? "Copied!" : "Copy"}</span>
-                  </button>
-                )}
+                </button>
               </div>
-              {sellerContactPhone && (
-                <div className="flex gap-2 pt-0.5">
+              <div className="flex gap-2 pt-0.5">
                   <a
                     href={`tel:${sellerContactPhone}`}
                     className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 shadow-xs transition-colors"
@@ -416,8 +441,7 @@ export function BuyBox({ product }: { product: Product }) {
                   >
                     WhatsApp
                   </a>
-                </div>
-              )}
+              </div>
             </div>
           )}
 

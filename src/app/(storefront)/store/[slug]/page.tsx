@@ -33,7 +33,14 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
           ) : <span>{storeName.charAt(0).toUpperCase()}</span>}
         </div>
         <div className="public-store-identity">
-          <div><h1>{storeName}</h1><span><CheckCircle2 /> Verified seller</span></div>
+          <div>
+            <h1>{storeName}</h1>
+            {seller.sellerKycStatus === "approved" ? (
+              <span><CheckCircle2 /> Identity verified</span>
+            ) : seller.sellerApprovalStatus === "approved" ? (
+              <span><CheckCircle2 /> Approved seller</span>
+            ) : null}
+          </div>
           <p>Member since {memberSince}</p>
           <div className="public-store-trust">
             <span><Star /> {ratingCount ? `${rating.toFixed(1)} (${ratingCount} reviews)` : "New seller"}</span>

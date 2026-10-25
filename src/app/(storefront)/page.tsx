@@ -12,7 +12,7 @@ export default async function HomePage() {
           <div className="min-w-0">
             <div className="mb-2 flex items-center gap-4 text-[11px] font-bold text-muted">
               <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" /> Across Nigeria</span>
-              <span className="inline-flex items-center gap-1"><BadgeCheck className="h-3.5 w-3.5 text-success" /> Verified sellers</span>
+              <span className="inline-flex items-center gap-1"><BadgeCheck className="h-3.5 w-3.5 text-success" /> Approved sellers</span>
             </div>
             <h1 className="text-2xl font-black leading-tight tracking-[-0.025em] text-ink sm:text-3xl">
               Find it. <span className="text-primary">Price Am.</span> Make the deal.

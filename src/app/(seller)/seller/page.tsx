@@ -313,7 +313,7 @@ function SellerDashboardContent() {
                 </h1>
                 <span className="inline-flex items-center gap-1 rounded-full bg-success-soft text-success border border-success/30 px-3 py-0.5 text-xs font-bold">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  Verified Merchant
+                  Approved seller
                 </span>
               </div>
 
