@@ -43,8 +43,6 @@ export interface Product {
   brand?: string;
   warranty?: string;
   negotiable?: boolean;
-  /** Only returned by seller-owned product endpoints. Never public. */
-  contactPhone?: string;
   location?: {
     state?: string;
     city?: string;
@@ -130,11 +128,6 @@ export async function listProducts(params: ListProductsParams = {}) {
 /** Client-side public product detail. */
 export async function getProduct(id: string) {
   return api<{ product: Product }>(`/products/${id}`);
-}
-
-/** Buyer/seller contact is available only after an accepted offer. */
-export async function getProductContact(id: string) {
-  return api<{ contactPhone: string }>(`/products/${id}/contact`);
 }
 
 /**

@@ -107,11 +107,10 @@ export default function NewProductPage() {
   const [stock, setStock] = useState("1");
   const [allowPriceAm, setAllowPriceAm] = useState(true);
 
-  // Location & Contact
+  // Location
   const [state, setState] = useState("Lagos");
   const [city, setCity] = useState("");
   const [addressNote, setAddressNote] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
 
   // Delivery (Arranged directly in chat)
   const [deliveryMode, setDeliveryMode] = useState<"buyer_pays_externally" | "seller_included">("buyer_pays_externally");
@@ -329,7 +328,6 @@ export default function NewProductPage() {
     form.set("brand", brand);
     form.set("warranty", warranty);
     form.set("negotiable", String(allowPriceAm));
-    form.set("contactPhone", contactPhone);
     form.set("state", state);
     form.set("city", city);
     form.set("addressNote", addressNote);
@@ -686,7 +684,7 @@ export default function NewProductPage() {
             </div>
 
             {/* Category & Brand Grid */}
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div>
               <div>
                 <Label htmlFor="category">Category *</Label>
                 <select
@@ -763,7 +761,7 @@ export default function NewProductPage() {
             </div>
 
             {/* Warranty / Guarantee */}
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="max-w-xl">
               <div>
                 <Label htmlFor="warranty">Warranty / Return Policy</Label>
                 <select
@@ -782,20 +780,6 @@ export default function NewProductPage() {
                 </select>
               </div>
 
-              <div>
-                <Label htmlFor="contactPhone">Direct Phone / WhatsApp *</Label>
-                <Input
-                  id="contactPhone"
-                  name="contactPhone"
-                  value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder="e.g. 08012345678 or +234..."
-                  className="h-11 rounded-xl"
-                />
-                <p className="mt-1 text-[11px] text-muted">
-                  Allowed so serious buyers can call or chat to confirm inspection.
-                </p>
-              </div>
             </div>
 
             {/* Description */}

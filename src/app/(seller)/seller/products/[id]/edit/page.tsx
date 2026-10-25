@@ -83,7 +83,7 @@ export default function EditProductPage({
     form.set("retainedImageUrls", JSON.stringify(retainedImageUrls));
 
     // Send only filled fields — empty optional inputs must not hit the API.
-    for (const key of ["minPrice", "brand", "warranty", "contactPhone", "state", "city", "addressNote"]) {
+    for (const key of ["minPrice", "brand", "warranty", "state", "city", "addressNote"]) {
       if (!String(form.get(key) ?? "").trim()) form.delete(key);
     }
     // Drop untouched file inputs so existing images are kept.
@@ -347,10 +347,10 @@ export default function EditProductPage({
             </div>
           </div>
 
-          {/* Location & Contact */}
+          {/* Location */}
           <div className="pt-2 border-t border-line space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Item Location &amp; Contact</h3>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Item Location</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="state">State (Nigeria)</Label>
                 <select
@@ -371,15 +371,6 @@ export default function EditProductPage({
                   name="city"
                   defaultValue={product.location?.city ?? ""}
                   placeholder="e.g. Ikeja, Wuse 2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contactPhone">Direct Phone / WhatsApp</Label>
-                <Input
-                  id="contactPhone"
-                  name="contactPhone"
-                  defaultValue={product.contactPhone ?? ""}
-                  placeholder="08012345678"
                 />
               </div>
             </div>

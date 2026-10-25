@@ -46,7 +46,6 @@ import {
   UserCheck,
   UserX,
   Users,
-  Wallet,
   Wrench,
   XCircle,
 } from "lucide-react";
@@ -106,9 +105,7 @@ function CategoryIconView({ iconName, className = "h-5 w-5" }: { iconName: strin
 const NAV_SHORTCUTS = [
   { href: "/admin/listings", title: "Listing Moderation", countKey: "pendingListingsCount" as const, icon: Package, color: "text-primary", bg: "bg-primary/10" },
   { href: "/admin/sellers", title: "Seller Applications", countKey: "pendingSellersCount" as const, icon: Store, color: "text-amber-500", bg: "bg-amber-500/10" },
-  { href: "/admin/disputes", title: "Dispute Arbitration", countKey: "openDisputesCount" as const, icon: MessageSquareWarning, color: "text-danger", bg: "bg-danger/10" },
-  { href: "/admin/payouts", title: "Seller Payouts", countKey: "eligiblePayoutsCount" as const, icon: BadgeDollarSign, color: "text-primary", bg: "bg-primary/10" },
-  { href: "/admin/completion-requests", title: "Delivery Proofs", countKey: "pendingCompletionCount" as const, icon: CircleCheckBig, color: "text-success", bg: "bg-success/10" },
+  { href: "/admin/disputes", title: "Reported Issues", countKey: "openDisputesCount" as const, icon: MessageSquareWarning, color: "text-danger", bg: "bg-danger/10" },
 ];
 
 export default function AdminDashboardPage() {
@@ -121,7 +118,7 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "requests" | "support" | "users" | "categories" | "activity" | "settings">("overview");
 
   // Operational request sub-filter
-  const [requestFilter, setRequestFilter] = useState<"all" | "sellers" | "completions" | "payouts">("all");
+  const [requestFilter, setRequestFilter] = useState<"all" | "sellers" | "completions" | "payouts">("sellers");
 
   // User directory state
   const [users, setUsers] = useState<User[]>([]);
@@ -550,25 +547,23 @@ export default function AdminDashboardPage() {
         <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/10 text-primary animate-pulse">
           <Shield className="h-8 w-8" />
         </div>
-        <p className="text-sm font-semibold text-muted">Securing Super Admin Executive Center…</p>
+        <p className="text-sm font-semibold text-muted">Loading marketplace administration…</p>
       </main>
     );
   }
 
   const queues = analytics?.queues;
-  const financials = analytics?.financials;
   const orders = analytics?.orders;
   const negotiations = analytics?.negotiations;
   const totalPendingAttention =
+    (queues?.pendingListingsCount || 0) +
     (queues?.pendingSellersCount || 0) +
     (queues?.openDisputesCount || 0) +
-    (queues?.pendingCompletionCount || 0) +
-    (queues?.eligiblePayoutsCount || 0) +
     (queues?.unansweredQuestionsCount || 0);
 
   return (
     <main className="min-h-screen pb-20">
-      {/* Executive Super Admin Header */}
+      {/* Admin Header */}
       <header className="border-b border-line bg-surface/85 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -576,14 +571,14 @@ export default function AdminDashboardPage() {
             <div className="h-5 w-px bg-line" />
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 border border-primary/30 px-3 py-1 text-xs font-black text-primary uppercase tracking-wider">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Owner &amp; Super Admin{currentUser?.fullName ? ` · ${currentUser.fullName}` : ""}
+              Marketplace Admin{currentUser?.fullName ? ` · ${currentUser.fullName}` : ""}
             </span>
           </div>
 
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-success/10 border border-success/20 px-3 py-1 text-xs font-bold text-success">
               <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-              {analytics?.system.paymentMode === "paystack" ? "Paystack Escrow Mode" : "Direct Settlement Mode"}
+              Platform operational
             </span>
 
             <Button
@@ -621,24 +616,17 @@ export default function AdminDashboardPage() {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary mb-1">
               <Shield className="h-3.5 w-3.5" />
-              Marketplace Operations &amp; Intelligence Desk
+              Marketplace Operations
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight flex items-center gap-2.5">
-              Super Admin Executive Center
+              Admin Dashboard
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-muted">
-              Live telemetry, peer-to-peer Price Am offer volume, dispute arbitration, merchant vetting, and customer inquiries.
+              Review listings and sellers, monitor offers and orders, manage users, and respond to marketplace issues.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setActiveTab("settings")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-bold text-muted hover:text-ink hover:border-line-strong transition-all shadow-xs"
-            >
-              <Download className="h-3.5 w-3.5" />
-              Export Reports
-            </button>
             <div className="flex items-center gap-1.5 text-xs text-muted">
               <Clock className="h-3.5 w-3.5" />
               <span>Synced {new Date().toLocaleTimeString()}</span>
@@ -659,12 +647,21 @@ export default function AdminDashboardPage() {
                     {totalPendingAttention} Operational Items Require Super Admin Review
                   </h2>
                   <p className="mt-0.5 text-xs text-muted">
-                    Seller applications, open disputes, delivery proofs, or customer Q&amp;A inquiries awaiting action.
+                    Listing reviews, seller applications, reported issues, or customer questions are awaiting action.
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
+                {(queues?.pendingListingsCount || 0) > 0 && (
+                  <Link
+                    href="/admin/listings"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 border border-primary/30 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    <Package className="h-3.5 w-3.5" />
+                    {queues?.pendingListingsCount} Listings
+                  </Link>
+                )}
                 {(queues?.openDisputesCount || 0) > 0 && (
                   <button
                     onClick={() => { setActiveTab("support"); }}
@@ -683,24 +680,6 @@ export default function AdminDashboardPage() {
                     {queues?.pendingSellersCount} Seller Apps
                   </button>
                 )}
-                {(queues?.pendingCompletionCount || 0) > 0 && (
-                  <button
-                    onClick={() => { setActiveTab("requests"); setRequestFilter("completions"); }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 border border-primary/30 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
-                  >
-                    <CircleCheckBig className="h-3.5 w-3.5" />
-                    {queues?.pendingCompletionCount} Delivery Proofs
-                  </button>
-                )}
-                {(queues?.eligiblePayoutsCount || 0) > 0 && (
-                  <button
-                    onClick={() => { setActiveTab("requests"); setRequestFilter("payouts"); }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-success/10 border border-success/30 px-3 py-1.5 text-xs font-bold text-success hover:bg-success/20 transition-colors"
-                  >
-                    <BadgeDollarSign className="h-3.5 w-3.5" />
-                    {queues?.eligiblePayoutsCount} Eligible Payouts
-                  </button>
-                )}
                 {(queues?.unansweredQuestionsCount || 0) > 0 && (
                   <button
                     onClick={() => { setActiveTab("support"); }}
@@ -715,44 +694,42 @@ export default function AdminDashboardPage() {
           </section>
         )}
 
-        {/* 6 Executive Metric Cards */}
+        {/* Marketplace overview */}
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {/* Card 1: Gross Marketplace Volume */}
           <div className="rounded-3xl border border-line bg-surface p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Gross GMV</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider">Listings</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <BadgeDollarSign className="h-4 w-4" />
+                <Package className="h-4 w-4" />
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-black text-ink">
-              ₦{(financials?.totalGmv || 0).toLocaleString()}
+              {(analytics?.products.total || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-muted truncate">
-              Settled: <strong className="text-success font-bold">₦{(financials?.completedGmv || 0).toLocaleString()}</strong>
+              Active: <strong className="text-success font-bold">{(analytics?.products.active || 0).toLocaleString()}</strong>
             </div>
           </div>
 
-          {/* Card 2: Platform Projected Fee */}
           <div className="rounded-3xl border border-line bg-surface p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Avg Order Value</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-success/10 text-success">
-                <Wallet className="h-4 w-4" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Pending Review</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                <BadgeAlert className="h-4 w-4" />
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-black text-ink">
-              ₦{(financials?.averageOrderValue || 0).toLocaleString()}
+              {(queues?.pendingListingsCount || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-muted truncate">
-              5% Comm.: <strong className="text-primary font-bold">₦{(financials?.potentialPlatformFee || 0).toLocaleString()}</strong>
+              Seller applications: <strong className="text-amber-600 font-bold">{queues?.pendingSellersCount || 0}</strong>
             </div>
           </div>
 
           {/* Card 3: Price Am Bargain Engine */}
           <div className="rounded-3xl border border-line bg-surface p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Price Am Deals</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider">Agreed Offers</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
                 <Sparkles className="h-4 w-4" />
               </div>
@@ -784,7 +761,7 @@ export default function AdminDashboardPage() {
           {/* Card 5: Verified Stores */}
           <div className="rounded-3xl border border-line bg-surface p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Merchants</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider">Sellers</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
                 <Store className="h-4 w-4" />
               </div>
@@ -800,7 +777,7 @@ export default function AdminDashboardPage() {
           {/* Card 6: Registered Community */}
           <div className="rounded-3xl border border-line bg-surface p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Community</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider">Users</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sunken text-muted">
                 <Users className="h-4 w-4" />
               </div>
@@ -815,7 +792,7 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Operational Shortcuts */}
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {NAV_SHORTCUTS.map((item) => {
             const count = queues ? (queues[item.countKey] as number) : 0;
             return (
@@ -830,7 +807,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-xs font-bold text-ink">{item.title}</h3>
-                    <p className="text-[11px] text-muted">Dedicated Queue &rarr;</p>
+                    <p className="text-[11px] text-muted">Open queue &rarr;</p>
                   </div>
                 </div>
                 {count > 0 ? (
@@ -850,13 +827,12 @@ export default function AdminDashboardPage() {
         {/* Tab Navigation */}
         <div className="border-b border-line flex items-center gap-2 overflow-x-auto pb-px">
           {[
-            { id: "overview", label: "Analytics & Intelligence", icon: BarChart3 },
-            { id: "requests", label: "Operational Requests", count: (queues?.pendingSellersCount || 0) + (queues?.pendingCompletionCount || 0) + (queues?.eligiblePayoutsCount || 0), icon: Inbox },
-            { id: "support", label: "Support & Disputes Desk", count: (queues?.openDisputesCount || 0) + (queues?.unansweredQuestionsCount || 0), icon: LifeBuoy },
-            { id: "users", label: "User & Store Directory", icon: Users },
-            { id: "categories", label: "Categories Manager", icon: Tag },
-            { id: "activity", label: "Live Activity Stream", icon: Activity },
-            { id: "settings", label: "Platform & Data Export", icon: Server },
+            { id: "overview", label: "Overview", icon: BarChart3 },
+            { id: "requests", label: "Seller Approvals", count: queues?.pendingSellersCount || 0, icon: Inbox },
+            { id: "support", label: "Support & Reports", count: (queues?.openDisputesCount || 0) + (queues?.unansweredQuestionsCount || 0), icon: LifeBuoy },
+            { id: "users", label: "Users & Stores", icon: Users },
+            { id: "categories", label: "Categories", icon: Tag },
+            { id: "activity", label: "Activity", icon: Activity },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -889,7 +865,7 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <h3 className="text-base font-bold text-ink flex items-center gap-2">
                     <Truck className="h-5 w-5 text-primary" />
-                    Order Pipeline &amp; Logistics
+                    Order Status
                   </h3>
                   <span className="text-xs text-muted font-bold">Total: {orders?.total || 0}</span>
                 </div>
@@ -899,7 +875,7 @@ export default function AdminDashboardPage() {
                     { label: "Awaiting fulfilment", key: "pending_payment", count: orders?.byStatus.pending_payment || 0, color: "bg-warning", text: "text-warning" },
                     { label: "Confirmed / In Logistics", key: "processing", count: (orders?.byStatus.paid || 0) + (orders?.byStatus.processing || 0), color: "bg-primary", text: "text-primary" },
                     { label: "Dispatched / In Transit", key: "shipped", count: orders?.byStatus.shipped || 0, color: "bg-accent", text: "text-ink" },
-                    { label: "Delivered & Settled", key: "delivered", count: orders?.byStatus.delivered || 0, color: "bg-success", text: "text-success" },
+                    { label: "Delivered", key: "delivered", count: orders?.byStatus.delivered || 0, color: "bg-success", text: "text-success" },
                     { label: "Completed Orders", key: "completed", count: orders?.byStatus.completed || 0, color: "bg-success", text: "text-success" },
                     { label: "Cancelled Orders", key: "cancelled", count: orders?.byStatus.cancelled || 0, color: "bg-danger", text: "text-danger" },
                   ].map((status) => {
@@ -927,10 +903,10 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <h3 className="text-base font-bold text-ink flex items-center gap-2">
                     <Handshake className="h-5 w-5 text-primary" />
-                    &quot;Price Am&quot; Offer Engine Funnel
+                    Price Am Offer Activity
                   </h3>
                   <span className="rounded-md bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5">
-                    Peer-to-Peer
+                    Live
                   </span>
                 </div>
 
@@ -959,14 +935,12 @@ export default function AdminDashboardPage() {
 
                 <div className="rounded-2xl bg-sunken/50 p-4 border border-line text-xs text-muted leading-relaxed flex items-start gap-2">
                   <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  <span>
-                    Price Am keeps negotiation on-platform with strict counter-limits. Once an agreed price is locked, the buyer initiates direct transaction chat for logistics &amp; delivery arrangements.
-                  </span>
+                  <span>Buyers make numeric offers, sellers accept or counter, and both parties use chat to arrange inspection, delivery, and direct payment.</span>
                 </div>
               </div>
             </div>
 
-            {/* Geographical & Category Telemetry */}
+            {/* Listings by location and category */}
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Top Nigerian States */}
               <div className="rounded-3xl border border-line bg-surface p-6 shadow-soft space-y-4">
@@ -982,7 +956,7 @@ export default function AdminDashboardPage() {
                     </div>
                   ))}
                   {(analytics?.products.byState ?? []).length === 0 && (
-                    <div className="col-span-4 text-xs text-muted text-center py-4">No location telemetry recorded yet.</div>
+                    <div className="col-span-4 text-xs text-muted text-center py-4">No listing locations recorded yet.</div>
                   )}
                 </div>
               </div>
@@ -1007,11 +981,11 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Server Infrastructure Health */}
+            {/* System status */}
             <div className="rounded-3xl border border-line bg-sunken/60 p-6 shadow-soft space-y-3 text-xs">
               <div className="flex items-center gap-2 font-bold text-ink text-sm">
                 <Server className="h-4 w-4 text-primary" />
-                <span>Super Admin Infrastructure Health</span>
+                <span>System Status</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-muted pt-2 border-t border-line">
                 <div>
@@ -1031,8 +1005,8 @@ export default function AdminDashboardPage() {
                   </strong>
                 </div>
                 <div>
-                  <span className="block text-[10px] uppercase font-bold">Payment Engine</span>
-                  <strong className="text-primary font-bold">Peer-to-Peer Settlement</strong>
+                  <span className="block text-[10px] uppercase font-bold">Marketplace Model</span>
+                  <strong className="text-primary font-bold">Direct buyer–seller deals</strong>
                 </div>
               </div>
             </div>
@@ -1047,10 +1021,7 @@ export default function AdminDashboardPage() {
             {/* Filter buttons */}
             <div className="flex flex-wrap items-center gap-2 pb-2">
               {[
-                { id: "all", label: "All Requests", count: (queues?.pendingApplications.length || 0) + (queues?.pendingCompletions?.length || 0) + (queues?.eligiblePayouts?.length || 0) },
                 { id: "sellers", label: "Seller Onboarding", count: queues?.pendingApplications.length || 0, icon: Store },
-                { id: "completions", label: "Delivery Proofs", count: queues?.pendingCompletions?.length || 0, icon: CircleCheckBig },
-                { id: "payouts", label: "Payout Settlements", count: queues?.eligiblePayouts?.length || 0, icon: BadgeDollarSign },
               ].map((filter) => (
                 <button
                   key={filter.id}
@@ -1140,7 +1111,7 @@ export default function AdminDashboardPage() {
               </section>
             )}
 
-            {/* SECTION 2: ORDER COMPLETION / DELIVERY PROOFS */}
+            {/* Legacy completion tooling remains disabled until platform payments are launched. */}
             {(requestFilter === "all" || requestFilter === "completions") && (
               <section className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-line">
@@ -1213,7 +1184,7 @@ export default function AdminDashboardPage() {
               </section>
             )}
 
-            {/* SECTION 3: SELLER PAYOUTS */}
+            {/* Legacy payout tooling remains disabled until platform payments are launched. */}
             {(requestFilter === "all" || requestFilter === "payouts") && (
               <section className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-line">
@@ -1566,12 +1537,12 @@ export default function AdminDashboardPage() {
         {/* ========================================================================= */}
         {activeTab === "activity" && (
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Live Order & Settlement Stream */}
+            {/* Recent order activity */}
             <section className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-line">
                 <h3 className="text-base font-bold text-ink flex items-center gap-2">
                   <Activity className="h-5 w-5 text-primary" />
-                  Live Order &amp; Settlement Stream
+                  Recent Order Activity
                 </h3>
                 <span className="text-xs text-muted">Recent transactions</span>
               </div>
