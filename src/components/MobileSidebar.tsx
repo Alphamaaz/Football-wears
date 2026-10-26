@@ -9,6 +9,7 @@ import {
   Handshake,
   HelpCircle,
   Home,
+  LayoutDashboard,
   Info,
   LogIn,
   Mail,
@@ -61,6 +62,7 @@ export function MobileSidebar() {
   }, [user]);
 
   const isSeller = Boolean(user?.roles.includes("seller"));
+  const isAdmin = Boolean(user?.roles.includes("admin"));
   const close = () => setOpen(false);
 
   return (
@@ -81,22 +83,22 @@ export function MobileSidebar() {
               ) : <span>{profile.initials}</span>}
               <div>
                 <h2>{profile.name}</h2>
-                <strong>{isSeller ? "Seller" : user ? "Buyer" : "Nigeria’s marketplace"}</strong>
+                <strong>{isAdmin ? "Marketplace administrator" : isSeller ? "Seller" : user ? "Buyer" : "Nigeria’s marketplace"}</strong>
                 <p>{profile.memberSince ? `Member since ${profile.memberSince}` : "Find it. Price it. Make the deal."}</p>
               </div>
             </div>
 
             <nav className="seller-drawer-nav" aria-label="Main navigation">
-              <Link href={isSeller ? "/seller" : "/"} className={(isSeller ? pathname === "/seller" : pathname === "/") ? "is-active" : ""} onClick={close}><Home /><span>{isSeller ? "Dashboard" : "Marketplace"}</span></Link>
+              {isAdmin ? <Link href="/admin" className={pathname.startsWith("/admin") ? "is-active" : ""} onClick={close}><LayoutDashboard /><span>Admin Dashboard</span></Link> : <Link href={isSeller ? "/seller" : "/"} className={(isSeller ? pathname === "/seller" : pathname === "/") ? "is-active" : ""} onClick={close}><Home /><span>{isSeller ? "Dashboard" : "Marketplace"}</span></Link>}
               {user && <Link href="/profile" onClick={close}><UserRound /><span>Profile</span></Link>}
-              <Link href="/conversations" onClick={close}><MessageCircle /><span>Messages</span></Link>
-              <Link href="/offers" onClick={close}><Handshake /><span>My Offers</span></Link>
-              {isSeller && <Link href="/seller/products" onClick={close}><Store /><span>My Shop</span></Link>}
-              <Link href="/orders" onClick={close}><ShoppingBag /><span>Orders</span></Link>
-              <Link href="/conversations" onClick={close}><Bell /><span>Notifications</span></Link>
+              {!isAdmin && <Link href="/conversations" onClick={close}><MessageCircle /><span>Messages</span></Link>}
+              {!isAdmin && <Link href="/offers" onClick={close}><Handshake /><span>My Offers</span></Link>}
+              {!isAdmin && isSeller && <Link href="/seller/products" onClick={close}><Store /><span>My Shop</span></Link>}
+              {!isAdmin && <Link href="/orders" onClick={close}><ShoppingBag /><span>Orders</span></Link>}
+              {!isAdmin && <Link href="/conversations" onClick={close}><Bell /><span>Notifications</span></Link>}
               <Link href="/contact" onClick={close}><HelpCircle /><span>Help</span></Link>
               {!user && <Link href="/login" onClick={close}><LogIn /><span>Log in</span></Link>}
-              {!isSeller && <Link href="/seller/onboarding" className="seller-drawer-sell" onClick={close}><Store /><span>Start selling</span></Link>}
+              {!isAdmin && !isSeller && <Link href="/seller/onboarding" className="seller-drawer-sell" onClick={close}><Store /><span>Start selling</span></Link>}
               <Link href="/about" className="seller-drawer-info" onClick={close}><Info /><span>About Price Am</span></Link>
               <Link href="/contact" onClick={close}><Mail /><span>Contact Us</span></Link>
               <Link href="/privacy" onClick={close}><ShieldCheck /><span>Privacy Policy</span></Link>

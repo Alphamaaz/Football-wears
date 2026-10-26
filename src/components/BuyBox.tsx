@@ -28,7 +28,7 @@ import {
 import { addWishlistItem, removeWishlistItem } from "@/lib/wishlist";
 import { createOffer } from "@/lib/offers";
 import type { VariantSelection } from "@/lib/offers";
-import type { Product } from "@/lib/products";
+import { reportProduct, type Product, type ProductReportReason } from "@/lib/products";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { notifyCommerceChanged } from "@/lib/commerce-events";
 import { openListingConversation } from "@/lib/chat";
@@ -82,10 +82,14 @@ export function BuyBox({ product }: { product: Product }) {
   const inStock = availableStock > 0;
 
   const [reported, setReported] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<ProductReportReason>("misleading_listing");
+  const [reportDetails, setReportDetails] = useState("");
 
   const sellerAvatar = product.sellerStoreImage || product.sellerProfileImage;
   const displayStoreName = product.storeName || product.sellerFullName || "Merchant Store";
   const identityVerified = product.sellerKycStatus === "approved";
+  const businessVerified = product.sellerBusinessVerificationStatus === "approved";
   const sellerApproved = product.sellerApprovalStatus === "approved";
 
   function formatSellerTenure(dateString?: string): string {
@@ -162,6 +166,32 @@ export function BuyBox({ product }: { product: Product }) {
       router.push(`/conversations/${response.conversation._id}`);
     } catch (err) {
       showApiError(err, "Could not open the listing conversation.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onSubmitReport(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setNotice(null);
+    if (!tokenStore.get()) {
+      router.push("/login");
+      return;
+    }
+    if (reportDetails.trim().length < 20) {
+      setError("Please explain the problem in at least 20 characters.");
+      return;
+    }
+    setBusy("report");
+    try {
+      const response = await reportProduct(product._id, reportReason, reportDetails.trim());
+      setReported(true);
+      setReportOpen(false);
+      setReportDetails("");
+      setNotice(response.message);
+    } catch (err) {
+      showApiError(err, "Could not submit this report.");
     } finally {
       setBusy(null);
     }
@@ -347,7 +377,14 @@ export function BuyBox({ product }: { product: Product }) {
                   <ShieldCheck className="h-3 w-3" />
                   Identity verified
                 </span>
-              ) : sellerApproved ? (
+              ) : null}
+              {businessVerified ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/20 text-ink text-[11px] font-bold border border-accent/30">
+                  <ShieldCheck className="h-3 w-3" />
+                  Business verified
+                </span>
+              ) : null}
+              {sellerApproved ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-soft text-primary-darker text-[11px] font-bold border border-primary/20">
                   <Store className="h-3 w-3" />
                   Approved seller
@@ -390,9 +427,10 @@ export function BuyBox({ product }: { product: Product }) {
           <button
             type="button"
             onClick={() => {
-              setReported(true);
-              setNotice("Listing reported to safety moderation team.");
+              if (!tokenStore.get()) router.push("/login");
+              else setReportOpen(true);
             }}
+            disabled={reported || busy !== null}
             className="inline-flex items-center gap-1.5 text-danger/80 hover:text-danger transition-colors"
           >
             <Flag className="h-3.5 w-3.5" />
@@ -400,6 +438,35 @@ export function BuyBox({ product }: { product: Product }) {
           </button>
         </div>
       </div>
+
+      {reportOpen && (
+        <div className="fixed inset-0 z-60 flex items-end justify-center bg-ink/60 px-0 sm:items-center sm:px-4" role="dialog" aria-modal="true" aria-labelledby="report-listing-title" onClick={() => setReportOpen(false)}>
+          <form onSubmit={onSubmitReport} className="w-full max-w-lg rounded-t-3xl border border-line bg-surface p-5 shadow-2xl sm:rounded-3xl sm:p-6" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="report-listing-title" className="text-xl font-black text-ink">Report this listing</h2>
+                <p className="mt-1 text-sm text-muted">Tell our safety team exactly what is wrong. Reports are reviewed by an administrator.</p>
+              </div>
+              <button type="button" onClick={() => setReportOpen(false)} aria-label="Close report form" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-sunken hover:text-ink"><X className="h-5 w-5" /></button>
+            </div>
+            <label className="mt-5 block text-sm font-bold text-ink" htmlFor="report-reason">Reason</label>
+            <select id="report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value as ProductReportReason)} className="mt-2 h-12 w-full rounded-2xl border border-line bg-surface px-4 text-base text-ink focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15">
+              <option value="suspected_scam">Suspected scam or fraud</option>
+              <option value="misleading_listing">Misleading description or photos</option>
+              <option value="counterfeit_item">Counterfeit or fake item</option>
+              <option value="prohibited_item">Prohibited item</option>
+              <option value="already_sold">Already sold or unavailable</option>
+              <option value="other">Other safety concern</option>
+            </select>
+            <label className="mt-4 block text-sm font-bold text-ink" htmlFor="report-details">What happened?</label>
+            <textarea id="report-details" required minLength={20} maxLength={1000} value={reportDetails} onChange={(event) => setReportDetails(event.target.value)} placeholder="Describe the issue and include any useful facts for the reviewer." className="mt-2 min-h-32 w-full resize-y rounded-2xl border border-line bg-surface p-4 text-base text-ink placeholder:text-muted focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15" />
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" onClick={() => setReportOpen(false)} className="min-h-11">Cancel</Button>
+              <Button type="submit" loading={busy === "report"} className="min-h-11 sm:min-w-40">Submit report</Button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* CARD 3: Safety Warning Banner */}
       <div className="rounded-2xl border border-warning/40 bg-warning/10 p-3.5 flex items-start gap-2.5 text-xs text-ink leading-relaxed">

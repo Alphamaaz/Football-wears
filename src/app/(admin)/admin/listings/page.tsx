@@ -36,15 +36,15 @@ export default function AdminListingsPage() {
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const response = await getAdminListings({ status, search: search || undefined, limit: 50 });
       setListings(response.listings);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Could not load listings");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [search, status]);
 
@@ -60,6 +60,13 @@ export default function AdminListingsPage() {
       })
       .catch(() => router.replace("/login"));
   }, [load, router]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") load(true);
+    }, 15000);
+    return () => window.clearInterval(interval);
+  }, [load]);
 
   async function act(listing: AdminListing, action: "approve" | "reject" | "block") {
     const reason = reasons[listing._id]?.trim();

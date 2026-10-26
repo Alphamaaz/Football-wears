@@ -353,10 +353,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   loading={busy === "complete"}
                   disabled={busy !== null}
                   onClick={handleConfirmComplete}
-                  className="rounded-2xl font-bold bg-[#00b53f] hover:bg-[#009e37] text-white shadow-soft"
+                  className="h-auto min-h-12 whitespace-normal rounded-2xl px-4 py-3 text-center text-sm font-bold leading-snug bg-[#00b53f] hover:bg-[#009e37] text-white shadow-soft sm:text-base"
                 >
-                  <CheckCircle2 className="h-4.5 w-4.5 mr-1" />
-                  Confirm Deal Completed
+                  <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
+                  Confirm handover complete
                 </Button>
               </div>
             )}

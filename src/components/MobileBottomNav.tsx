@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, Home, ReceiptText, Store, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Flag, Heart, Home, LayoutDashboard, PackageSearch, ReceiptText, ShieldCheck, Store, UserRound } from "lucide-react";
+import { getMe } from "@/lib/auth";
+import { tokenStore } from "@/lib/api";
 
 const items = [
   { href: "/", label: "Home", icon: Home },
@@ -14,9 +17,21 @@ const items = [
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(tokenStore.get() ? null : false);
+  useEffect(() => { if (tokenStore.get()) getMe().then(({ user }) => setIsAdmin(user.roles.includes("admin"))).catch(() => {}); }, []);
+  const visibleItems = isAdmin ? [
+    { href: "/admin", label: "Admin", icon: LayoutDashboard },
+    { href: "/admin/listings", label: "Listings", icon: PackageSearch },
+    { href: "/admin/reports", label: "Reports", icon: Flag },
+    { href: "/admin/verifications", label: "Verify", icon: ShieldCheck },
+    { href: "/profile", label: "Profile", icon: UserRound },
+  ] : items;
+  if (isAdmin === null) return null;
   return (
     <nav className="mobile-app-nav sm:hidden" aria-label="Primary navigation">
-      {items.map(({ href, label, icon: Icon, sell }) => {
+      {visibleItems.map((item) => {
+        const { href, label, icon: Icon } = item;
+        const sell = "sell" in item && item.sell;
         const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
         return (
           <Link key={href} href={href} className={`mobile-app-nav-item ${active ? "is-active" : ""}`}>

@@ -8,6 +8,7 @@ import { tokenStore } from "@/lib/api";
 import { COMMERCE_CHANGED_EVENT } from "@/lib/commerce-events";
 import { getNavigationSummary, type NavigationSummary } from "@/lib/notifications";
 import { getRealtimeSocket } from "@/lib/realtime";
+import { getMe } from "@/lib/auth";
 
 type IconLink = {
   href: string;
@@ -25,6 +26,7 @@ const ICON_LINKS: IconLink[] = [
 
 export function NavbarCommerceLinks() {
   const [counts, setCounts] = useState<NavigationSummary>({ cart: 0, wishlist: 0, orders: 0, messages: 0, offers: 0, offersBuyer: 0, offersSeller: 0 });
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(tokenStore.get() ? null : false);
 
   const refreshCounts = useCallback(() => {
     if (!tokenStore.get()) return;
@@ -33,6 +35,7 @@ export function NavbarCommerceLinks() {
   }, []);
 
   useEffect(() => {
+    if (tokenStore.get()) getMe().then(({ user }) => setIsAdmin(user.roles.includes("admin"))).catch(() => {});
     refreshCounts();
     const socket = getRealtimeSocket();
     socket?.on("badges:changed", refreshCounts);
@@ -49,6 +52,8 @@ export function NavbarCommerceLinks() {
       window.removeEventListener("focus", onFocus);
     };
   }, [refreshCounts]);
+
+  if (isAdmin === null || isAdmin) return null;
 
   return (
     <>

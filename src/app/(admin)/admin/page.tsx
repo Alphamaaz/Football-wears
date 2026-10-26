@@ -21,6 +21,7 @@ import {
   Inbox,
   LifeBuoy,
   MapPin,
+  MessageSquare,
   MessageSquareWarning,
   Baby,
   BookOpen,
@@ -42,7 +43,6 @@ import {
   Store,
   Tag,
   Trash2,
-  Truck,
   UserCheck,
   UserX,
   Users,
@@ -104,8 +104,8 @@ function CategoryIconView({ iconName, className = "h-5 w-5" }: { iconName: strin
 
 const NAV_SHORTCUTS = [
   { href: "/admin/listings", title: "Listing Moderation", countKey: "pendingListingsCount" as const, icon: Package, color: "text-primary", bg: "bg-primary/10" },
-  { href: "/admin/sellers", title: "Seller Applications", countKey: "pendingSellersCount" as const, icon: Store, color: "text-amber-500", bg: "bg-amber-500/10" },
-  { href: "/admin/disputes", title: "Reported Issues", countKey: "openDisputesCount" as const, icon: MessageSquareWarning, color: "text-danger", bg: "bg-danger/10" },
+  { href: "/admin/verifications", title: "Verification Requests", countKey: "pendingVerificationCount" as const, icon: ShieldCheck, color: "text-amber-500", bg: "bg-amber-500/10" },
+  { href: "/admin/reports", title: "Listing Reports", countKey: "openListingReportsCount" as const, icon: MessageSquareWarning, color: "text-danger", bg: "bg-danger/10" },
 ];
 
 export default function AdminDashboardPage() {
@@ -199,6 +199,14 @@ export default function AdminDashboardPage() {
       })
       .catch(() => router.replace("/login"));
   }, [router, fetchAnalytics]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") fetchAnalytics();
+    }, 15000);
+    return () => window.clearInterval(interval);
+  }, [ready, fetchAnalytics]);
 
   useEffect(() => {
     if (activeTab !== "users" || !ready) return;
@@ -558,7 +566,9 @@ export default function AdminDashboardPage() {
   const totalPendingAttention =
     (queues?.pendingListingsCount || 0) +
     (queues?.pendingSellersCount || 0) +
+    (queues?.pendingVerificationCount || 0) +
     (queues?.openDisputesCount || 0) +
+    (queues?.openListingReportsCount || 0) +
     (queues?.unansweredQuestionsCount || 0);
 
   return (
@@ -622,7 +632,7 @@ export default function AdminDashboardPage() {
               Admin Dashboard
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-muted">
-              Review listings and sellers, monitor offers and orders, manage users, and respond to marketplace issues.
+              Review listings and sellers, monitor offers, manage users, and respond to marketplace issues.
             </p>
           </div>
 
@@ -742,19 +752,19 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Card 4: Orders & Logistics */}
+          {/* Card 4: Marketplace reports */}
           <div className="rounded-3xl border border-line bg-surface p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Total Orders</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/20 text-ink">
-                <Package className="h-4 w-4" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Reported Issues</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-danger/10 text-danger">
+                <BadgeAlert className="h-4 w-4" />
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-black text-ink">
-              {(orders?.total || 0).toLocaleString()}
+              {((queues?.openListingReportsCount || 0) + (queues?.openDisputesCount || 0)).toLocaleString()}
             </div>
             <div className="text-[11px] text-muted truncate">
-              In-Transit: <strong className="text-ink font-bold">{((orders?.byStatus.processing || 0) + (orders?.byStatus.shipped || 0)).toLocaleString()}</strong>
+              Buyer questions: <strong className="text-ink font-bold">{(queues?.unansweredQuestionsCount || 0).toLocaleString()}</strong>
             </div>
           </div>
 
@@ -860,41 +870,45 @@ export default function AdminDashboardPage() {
         {activeTab === "overview" && (
           <div className="space-y-8">
             <div className="grid gap-6 lg:grid-cols-2">
-              {/* Order Fulfillment Status Breakdown */}
+              {/* Moderation workload */}
               <div className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <h3 className="text-base font-bold text-ink flex items-center gap-2">
-                    <Truck className="h-5 w-5 text-primary" />
-                    Order Status
+                    <ShieldCheck className="h-5 w-5 text-primary" />
+                    Moderation Queue
                   </h3>
-                  <span className="text-xs text-muted font-bold">Total: {orders?.total || 0}</span>
+                  <Link href="/admin/listings" className="text-xs font-bold text-primary hover:underline">
+                    Review listings &rarr;
+                  </Link>
                 </div>
 
-                <div className="space-y-3.5 text-xs sm:text-sm">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {[
-                    { label: "Awaiting fulfilment", key: "pending_payment", count: orders?.byStatus.pending_payment || 0, color: "bg-warning", text: "text-warning" },
-                    { label: "Confirmed / In Logistics", key: "processing", count: (orders?.byStatus.paid || 0) + (orders?.byStatus.processing || 0), color: "bg-primary", text: "text-primary" },
-                    { label: "Dispatched / In Transit", key: "shipped", count: orders?.byStatus.shipped || 0, color: "bg-accent", text: "text-ink" },
-                    { label: "Delivered", key: "delivered", count: orders?.byStatus.delivered || 0, color: "bg-success", text: "text-success" },
-                    { label: "Completed Orders", key: "completed", count: orders?.byStatus.completed || 0, color: "bg-success", text: "text-success" },
-                    { label: "Cancelled Orders", key: "cancelled", count: orders?.byStatus.cancelled || 0, color: "bg-danger", text: "text-danger" },
-                  ].map((status) => {
-                    const total = orders?.total || 1;
-                    const pct = Math.round((status.count / total) * 100);
-                    return (
-                      <div key={status.key} className="space-y-1">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-ink">{status.label}</span>
-                          <span className="font-bold text-muted">
-                            {status.count} ({pct}%)
-                          </span>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-sunken overflow-hidden">
-                          <div className={`h-full rounded-full ${status.color}`} style={{ width: `${pct}%` }} />
-                        </div>
+                    { label: "Listings awaiting approval", count: queues?.pendingListingsCount || 0, href: "/admin/listings", tab: null, icon: Package, tone: "bg-primary/10 text-primary" },
+                    { label: "Verification requests", count: queues?.pendingVerificationCount || 0, href: "/admin/verifications", tab: null, icon: ShieldCheck, tone: "bg-amber-500/10 text-amber-600" },
+                    { label: "Listing reports", count: queues?.openListingReportsCount || 0, href: "/admin/reports", tab: null, icon: BadgeAlert, tone: "bg-danger/10 text-danger" },
+                    { label: "Buyer questions", count: queues?.unansweredQuestionsCount || 0, href: null, tab: "support", icon: MessageSquare, tone: "bg-accent/20 text-ink" },
+                  ].map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => {
+                        if (item.href) router.push(item.href);
+                        else if (item.tab === "requests" || item.tab === "support") setActiveTab(item.tab);
+                      }}
+                      className="group flex w-full items-center justify-between rounded-2xl border border-line bg-sunken/40 p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.tone}`}>
+                          <item.icon className="h-4 w-4" />
+                        </span>
+                        <span className="text-xs font-bold text-ink">{item.label}</span>
                       </div>
-                    );
-                  })}
+                      <span className="ml-3 rounded-full bg-surface px-2.5 py-1 text-xs font-black text-ink shadow-soft">
+                        {item.count}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -1537,14 +1551,14 @@ export default function AdminDashboardPage() {
         {/* ========================================================================= */}
         {activeTab === "activity" && (
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Recent order activity */}
+            {/* Recent direct-deal activity */}
             <section className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-line">
                 <h3 className="text-base font-bold text-ink flex items-center gap-2">
                   <Activity className="h-5 w-5 text-primary" />
-                  Recent Order Activity
+                  Recent Deal Activity
                 </h3>
-                <span className="text-xs text-muted">Recent transactions</span>
+                <span className="text-xs text-muted">Buyer and seller agreements</span>
               </div>
 
               <div className="divide-y divide-line">
@@ -1552,10 +1566,7 @@ export default function AdminDashboardPage() {
                   <div key={order._id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-ink">Order #{order._id.slice(-6).toUpperCase()}</span>
-                        <span className="rounded-md bg-sunken px-2 py-0.5 text-[10px] font-bold uppercase text-muted">
-                          {order.orderStatus === "pending_payment" ? "Awaiting fulfilment" : order.orderStatus.replaceAll("_", " ")}
-                        </span>
+                        <span className="font-mono text-xs font-bold text-ink">Deal #{order._id.slice(-6).toUpperCase()}</span>
                       </div>
                       <p className="text-xs text-muted">
                         Store: <strong className="text-ink">{order.items?.[0]?.storeName || "Merchant"}</strong> · {order.items?.length || 1} item(s)
@@ -1565,21 +1576,14 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <strong className="text-sm font-extrabold text-primary">₦{order.total.toLocaleString()}</strong>
-                      </div>
-
-                      <Link href={`/orders/${order._id}`}>
-                        <Button size="sm" variant="outline" className="rounded-xl text-xs h-8">
-                          Inspect &rarr;
-                        </Button>
-                      </Link>
+                    <div className="text-right">
+                      <span className="block text-[10px] font-bold uppercase tracking-wide text-muted">Agreed value</span>
+                      <strong className="text-sm font-extrabold text-primary">₦{order.total.toLocaleString()}</strong>
                     </div>
                   </div>
                 ))}
                 {(orders?.recent ?? []).length === 0 && (
-                  <div className="py-8 text-center text-xs text-muted">No orders processed yet.</div>
+                  <div className="py-8 text-center text-xs text-muted">No agreed deals recorded yet.</div>
                 )}
               </div>
             </section>

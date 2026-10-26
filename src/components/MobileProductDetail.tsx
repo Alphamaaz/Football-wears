@@ -143,10 +143,11 @@ export function MobileProductDetail({ product, rating, ratingCount }: { product:
         <div>
           <h2>{sellerName}</h2>
           <p>
-            {product.sellerKycStatus === "approved" && <><CheckCircle2 /> Identity verified</>}
-            {product.sellerKycStatus !== "approved" && product.sellerApprovalStatus === "approved" && <><CheckCircle2 /> Approved seller</>}
-            {product.sellerKycStatus !== "approved" && product.sellerApprovalStatus !== "approved" && <>Marketplace seller</>}
-            {ratingCount > 0 ? ` · ${rating.toFixed(1)} rating` : ""}
+            {product.sellerApprovalStatus === "approved" && <span><CheckCircle2 /> Approved seller</span>}
+            {product.sellerKycStatus === "approved" && <span><CheckCircle2 /> Identity verified</span>}
+            {product.sellerBusinessVerificationStatus === "approved" && <span><CheckCircle2 /> Business verified</span>}
+            {product.sellerKycStatus !== "approved" && product.sellerBusinessVerificationStatus !== "approved" && product.sellerApprovalStatus !== "approved" && <span>Marketplace seller</span>}
+            {ratingCount > 0 && <span>{rating.toFixed(1)} rating</span>}
           </p>
         </div>
         {product.storeSlug && <Link href={`/store/${product.storeSlug}`}>View Profile</Link>}

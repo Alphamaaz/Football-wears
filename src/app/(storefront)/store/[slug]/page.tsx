@@ -35,11 +35,11 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
         <div className="public-store-identity">
           <div>
             <h1>{storeName}</h1>
-            {seller.sellerKycStatus === "approved" ? (
-              <span><CheckCircle2 /> Identity verified</span>
-            ) : seller.sellerApprovalStatus === "approved" ? (
-              <span><CheckCircle2 /> Approved seller</span>
-            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {seller.sellerApprovalStatus === "approved" && <span><CheckCircle2 /> Approved seller</span>}
+              {seller.sellerKycStatus === "approved" && <span><CheckCircle2 /> Identity verified</span>}
+              {seller.sellerBusinessVerificationStatus === "approved" && <span><CheckCircle2 /> Business verified</span>}
+            </div>
           </div>
           <p>Member since {memberSince}</p>
           <div className="public-store-trust">

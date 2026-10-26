@@ -119,14 +119,14 @@ export function UserMenu() {
             <p className="text-sm font-semibold text-ink truncate">{user.fullName}</p>
             <p className="text-xs text-muted truncate">{user.email}</p>
           </div>
-          <Link
-            href="/conversations"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
-          >
-            <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
-            Messages
-          </Link>
+          {!isAdmin && <Link
+              href="/conversations"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
+            >
+              <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
+              Messages
+            </Link>}
           {isAdmin && <Link
             href="/admin"
             onClick={() => setOpen(false)}
@@ -143,7 +143,7 @@ export function UserMenu() {
             <UserIcon className="h-4 w-4" strokeWidth={1.75} />
             My profile
           </Link>
-          {isSeller ? (
+          {!isAdmin && isSeller ? (
             <>
               <Link
                 href="/seller"
@@ -162,7 +162,7 @@ export function UserMenu() {
                 Manage Listings
               </Link>
             </>
-          ) : (
+          ) : !isAdmin ? (
             <Link
               href="/seller/onboarding"
               onClick={() => setOpen(false)}
@@ -171,7 +171,7 @@ export function UserMenu() {
               <Store className="h-4 w-4" strokeWidth={1.75} />
               Become a seller
             </Link>
-          )}
+          ) : null}
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-danger hover:bg-danger-soft mt-1"

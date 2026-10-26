@@ -23,6 +23,7 @@ import {
   Plus,
   RefreshCw,
   ShoppingBag,
+  ShieldCheck,
   Store,
   TrendingUp,
   Truck,
@@ -121,6 +122,7 @@ function MobileSellerDashboard({
               <Link href="/conversations" onClick={() => setMenuOpen(false)}><MessageCircle /><span>Messages</span></Link>
               <Link href="/offers?tab=seller" onClick={() => setMenuOpen(false)}><Handshake /><span>My Offers</span></Link>
               <Link href="/seller/products" onClick={() => setMenuOpen(false)}><Store /><span>My Shop</span></Link>
+              <Link href="/seller/verification" onClick={() => setMenuOpen(false)}><ShieldCheck /><span>Verification</span></Link>
               <Link href="/orders" onClick={() => setMenuOpen(false)}><Truck /><span>Orders</span></Link>
               <Link href="/conversations" onClick={() => setMenuOpen(false)}><Bell /><span>Notifications</span></Link>
               <Link href="/conversations?support=true" onClick={() => setMenuOpen(false)}><HelpCircle /><span>Help</span></Link>
@@ -197,6 +199,10 @@ function SellerDashboardContent() {
     Promise.all([getMe(), getSellerAnalytics()])
       .then(([userRes, analyticsRes]) => {
         setUser(userRes.user);
+        if (userRes.user.roles.includes("admin")) {
+          router.replace("/admin");
+          return;
+        }
         if (!userRes.user.roles.includes("seller")) {
           router.replace("/seller/onboarding");
           return;
@@ -315,6 +321,16 @@ function SellerDashboardContent() {
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   Approved seller
                 </span>
+                {user?.sellerProfile?.identityVerification?.status === "approved" && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-3 py-0.5 text-xs font-bold text-success">
+                    <ShieldCheck className="h-3.5 w-3.5" /> Identity verified
+                  </span>
+                )}
+                {user?.sellerProfile?.businessVerification?.status === "approved" && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/20 px-3 py-0.5 text-xs font-bold text-ink">
+                    <ShieldCheck className="h-3.5 w-3.5" /> Business verified
+                  </span>
+                )}
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
@@ -335,6 +351,11 @@ function SellerDashboardContent() {
 
           {/* Quick Action Header Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
+            <Link href="/seller/verification">
+              <Button variant="outline" size="md" className="rounded-2xl px-4 font-bold">
+                <ShieldCheck className="h-4 w-4 text-primary" /> Verification
+              </Button>
+            </Link>
             <button
               type="button"
               onClick={() => loadData(false)}

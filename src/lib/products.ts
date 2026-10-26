@@ -76,6 +76,7 @@ export interface Product {
   sellerJoinedAt?: string;
   sellerApprovalStatus?: "pending" | "approved" | "rejected";
   sellerKycStatus?: "not_submitted" | "pending" | "approved" | "rejected";
+  sellerBusinessVerificationStatus?: "not_submitted" | "pending" | "approved" | "rejected";
   promotion?: { enabled: boolean; commissionPercent?: number; startsAt?: string; endsAt?: string };
   createdAt: string;
   updatedAt: string;
@@ -128,6 +129,15 @@ export async function listProducts(params: ListProductsParams = {}) {
 /** Client-side public product detail. */
 export async function getProduct(id: string) {
   return api<{ product: Product }>(`/products/${id}`);
+}
+
+export type ProductReportReason = "suspected_scam" | "misleading_listing" | "counterfeit_item" | "prohibited_item" | "already_sold" | "other";
+
+export async function reportProduct(productId: string, reason: ProductReportReason, details: string) {
+  return api<{ message: string }>("/reports", {
+    method: "POST",
+    body: { productId, reason, details },
+  });
 }
 
 /**

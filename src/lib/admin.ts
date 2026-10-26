@@ -1,6 +1,6 @@
 /* Admin API — mirrors Backend/src/modules/admin */
 
-import { api } from "./api";
+import { api, API_URL, tokenStore } from "./api";
 import type { User } from "./types";
 import type { Order } from "./orders";
 import type { Dispute } from "./disputes";
@@ -121,7 +121,9 @@ export interface AdminAnalyticsData {
   queues: {
     pendingListingsCount?: number;
     pendingSellersCount: number;
+    pendingVerificationCount?: number;
     openDisputesCount: number;
+    openListingReportsCount?: number;
     pendingCompletionCount: number;
     eligiblePayoutsCount: number;
     unansweredQuestionsCount: number;
@@ -238,6 +240,34 @@ export async function rejectSeller(userId: string, reason: string) {
     method: "PATCH",
     body: { reason },
   });
+}
+
+export interface VerificationApplication extends Pick<User, "_id" | "fullName" | "email" | "contactNumber" | "createdAt"> {
+  sellerProfile: NonNullable<User["sellerProfile"]> & {
+    identityVerification?: NonNullable<User["sellerProfile"]>["identityVerification"] & { idNumber?: string; documentFront?: string; documentBack?: string; selfie?: string };
+    businessVerification?: NonNullable<User["sellerProfile"]>["businessVerification"] & { registrationNumber?: string; registrationDocument?: string; addressDocument?: string };
+  };
+}
+
+export async function getVerificationApplications() {
+  return api<{ applications: VerificationApplication[] }>("/admin/verifications");
+}
+
+export async function reviewVerification(userId: string, type: "identity" | "business", action: "approve" | "reject", reason?: string) {
+  return api<{ message: string }>(`/admin/verifications/${userId}`, { method: "PATCH", body: { type, action, reason } });
+}
+
+export async function openVerificationDocument(path: string) {
+  const preview = window.open("", "_blank");
+  const response = await fetch(`${API_URL}${path}`, { headers: tokenStore.get() ? { Authorization: `Bearer ${tokenStore.get()}` } : {}, credentials: "include" });
+  if (!response.ok) {
+    preview?.close();
+    throw new Error("Could not open verification document");
+  }
+  const url = URL.createObjectURL(await response.blob());
+  if (preview) preview.location.href = url;
+  else window.open(url, "_blank", "noopener,noreferrer");
+  window.setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 export async function hideQuestion(questionId: string) {

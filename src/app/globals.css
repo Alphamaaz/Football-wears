@@ -515,7 +515,8 @@ html { scroll-behavior: smooth; }
 .mobile-product-seller > img,.mobile-product-seller > span { display:grid; height:3.3rem; width:3.3rem; flex:0 0 auto; place-items:center; border-radius:999px; background:var(--color-primary-soft); object-fit:cover; color:var(--color-primary-dark); font-weight:800; }
 .mobile-product-seller > div { min-width:0; flex:1; }
 .mobile-product-seller h2 { overflow:hidden; font-size:1rem; font-weight:750; text-overflow:ellipsis; white-space:nowrap; }
-.mobile-product-seller p { display:flex; align-items:center; gap:.25rem; overflow:hidden; margin-top:.2rem; color:var(--color-muted); font-size:.65rem; text-overflow:ellipsis; white-space:nowrap; }
+.mobile-product-seller p { display:flex; flex-wrap:wrap; align-items:center; gap:.25rem .45rem; margin-top:.2rem; color:var(--color-muted); font-size:.65rem; }
+.mobile-product-seller p span { display:inline-flex; align-items:center; gap:.2rem; }
 .mobile-product-seller p svg { height:.8rem; width:.8rem; color:#9b7200; }
 .mobile-product-seller a { flex:0 0 auto; border:1px solid var(--color-line); border-radius:999px; padding:.65rem .8rem; font-size:.68rem; font-weight:700; }
 .mobile-product-error { margin-top:1rem; border-radius:.8rem; background:var(--color-danger-soft); padding:.75rem; color:var(--color-danger); font-size:.75rem; }
