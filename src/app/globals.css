@@ -413,14 +413,14 @@ html { scroll-behavior: smooth; }
 .mobile-account-notice.is-error { background:var(--color-danger-soft); color:var(--color-danger); }
 .mobile-account-management h2 { margin-bottom:1rem; font-size:1.2rem; font-weight:760; }
 .mobile-account-management > div { overflow:hidden; border:1px solid var(--color-line); border-radius:1.15rem; background:white; }
-.mobile-account-management > div button { display:grid; width:100%; min-height:4.5rem; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.8rem; padding:.75rem 1rem; text-align:left; }
-.mobile-account-management > div button + button { border-top:1px solid var(--color-line); }
-.mobile-account-management button > span:first-child { display:grid; height:2.8rem; width:2.8rem; place-items:center; border-radius:.75rem; background:var(--color-sunken); color:#a95013; }
-.mobile-account-management button > span:first-child svg { height:1.2rem; width:1.2rem; }
-.mobile-account-management button > span:nth-child(2) { min-width:0; }
-.mobile-account-management button strong { display:block; overflow:hidden; color:var(--color-ink); font-size:.94rem; font-weight:680; text-overflow:ellipsis; white-space:nowrap; }
-.mobile-account-management button small { display:block; margin-top:.1rem; color:var(--color-muted); font-size:.72rem; }
-.mobile-account-management button > svg { height:1rem; width:1rem; color:var(--color-body); }
+.mobile-account-management > div :is(button,a) { display:grid; width:100%; min-height:4.5rem; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.8rem; padding:.75rem 1rem; text-align:left; }
+.mobile-account-management > div :is(button,a) + :is(button,a) { border-top:1px solid var(--color-line); }
+.mobile-account-management :is(button,a) > span:first-child { display:grid; height:2.8rem; width:2.8rem; place-items:center; border-radius:.75rem; background:var(--color-sunken); color:#a95013; }
+.mobile-account-management :is(button,a) > span:first-child svg { height:1.2rem; width:1.2rem; }
+.mobile-account-management :is(button,a) > span:nth-child(2) { min-width:0; }
+.mobile-account-management :is(button,a) strong { display:block; overflow:hidden; color:var(--color-ink); font-size:.94rem; font-weight:680; text-overflow:ellipsis; white-space:nowrap; }
+.mobile-account-management :is(button,a) small { display:block; margin-top:.1rem; color:var(--color-muted); font-size:.72rem; }
+.mobile-account-management :is(button,a) > svg { height:1rem; width:1rem; color:var(--color-body); }
 .mobile-account-logout { display:flex; width:100%; min-height:4.5rem; align-items:center; gap:.8rem; margin-top:1rem; border:1px solid var(--color-line); border-radius:1.15rem; background:white; padding:.75rem 1rem; color:#9d2020; }
 .mobile-account-logout > span { background:#fff0f0 !important; color:#9d2020 !important; }
 .mobile-account-logout strong { font-size:.95rem; }

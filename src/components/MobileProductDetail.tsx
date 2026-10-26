@@ -46,6 +46,13 @@ export function MobileProductDetail({ product, rating, ratingCount }: { product:
   const date = new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric" }).format(new Date(product.createdAt));
   const sellerName = product.storeName || product.sellerFullName || "PriceAm Seller";
   const sellerImage = product.sellerStoreImage || product.sellerProfileImage;
+  const sellerTrustLabel = product.sellerBusinessVerificationStatus === "approved"
+    ? "Business verified"
+    : product.sellerKycStatus === "approved"
+      ? "Identity verified"
+      : product.sellerApprovalStatus === "approved"
+        ? "Approved seller"
+        : "New seller";
   const allVariantsSelected = product.variants.length === 0 || product.variants.every((variant) => selected[variant.name]);
 
   function requireLogin() {
@@ -143,10 +150,7 @@ export function MobileProductDetail({ product, rating, ratingCount }: { product:
         <div>
           <h2>{sellerName}</h2>
           <p>
-            {product.sellerApprovalStatus === "approved" && <span><CheckCircle2 /> Approved seller</span>}
-            {product.sellerKycStatus === "approved" && <span><CheckCircle2 /> Identity verified</span>}
-            {product.sellerBusinessVerificationStatus === "approved" && <span><CheckCircle2 /> Business verified</span>}
-            {product.sellerKycStatus !== "approved" && product.sellerBusinessVerificationStatus !== "approved" && product.sellerApprovalStatus !== "approved" && <span>Marketplace seller</span>}
+            <span><CheckCircle2 /> {sellerTrustLabel}</span>
             {ratingCount > 0 && <span>{rating.toFixed(1)} rating</span>}
           </p>
         </div>

@@ -248,9 +248,6 @@ export default async function ProductDetailPage({
               <div className="inline-flex items-center gap-1.5 rounded-full bg-surface border border-line px-3 py-1 text-xs font-semibold text-ink shadow-xs">
                 <Store className="h-3.5 w-3.5 text-primary" />
                 <span>{product.storeName}</span>
-                {product.sellerKycStatus === "approved" && (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-success fill-success/20 ml-0.5" aria-label="Identity verified" />
-                )}
               </div>
 
               {(product.sellerRatingCount ?? 0) > 0 && (
@@ -328,12 +325,9 @@ export default async function ProductDetailPage({
                 / 5.0 ({effectiveRatingCount} {effectiveRatingCount === 1 ? "review" : "reviews"})
               </span>
             </div>
-          ) : product.sellerKycStatus === "approved" ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 self-start sm:self-auto">
-              <ShieldCheck className="h-4 w-4" />
-                <span>Identity verified</span>
-            </div>
-          ) : null}
+          ) : (
+            <span className="text-xs font-semibold text-muted self-start sm:self-auto">No completed-deal reviews yet</span>
+          )}
         </div>
 
         {allReviews.length > 0 ? (

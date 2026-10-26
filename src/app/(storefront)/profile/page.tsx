@@ -376,6 +376,17 @@ export default function ProfilePage() {
   }
 
   const isSeller = user.roles.includes("seller");
+  const identityVerificationStatus = user.sellerProfile?.identityVerification?.status || user.sellerProfile?.kycStatus || "not_submitted";
+  const businessVerificationStatus = user.sellerProfile?.businessVerification?.status || "not_submitted";
+  const verificationSummary = businessVerificationStatus === "approved"
+    ? "Business verified"
+    : identityVerificationStatus === "approved"
+      ? "Identity verified"
+      : identityVerificationStatus === "pending" || businessVerificationStatus === "pending"
+        ? "Application under review"
+        : identityVerificationStatus === "rejected" || businessVerificationStatus === "rejected"
+          ? "Action required"
+          : "Verify identity or business";
   const initials = user.fullName
     .split(" ")
     .map((w) => w[0])
@@ -404,6 +415,7 @@ export default function ProfilePage() {
               <div>
                 <button type="button" onClick={() => setMobileEditing(true)}><span><Pencil /></span><span><strong>Update Profile</strong><small>Name, phone and photos</small></span><ChevronRight /></button>
                 <button type="button" onClick={() => setMobileEditing(true)}><span><Mail /></span><span><strong>{user.email}</strong><small>{user.emailVerified ? "Email verified" : "Email verification required"}</small></span><ChevronRight /></button>
+                {isSeller && <Link href="/seller/verification"><span><ShieldCheck /></span><span><strong>Seller Verification</strong><small>{verificationSummary}</small></span><ChevronRight /></Link>}
               </div>
               <button type="button" className="mobile-account-logout" onClick={handleSignOut}><span><LogOut /></span><strong>Logout</strong></button>
             </section>
@@ -620,17 +632,26 @@ export default function ProfilePage() {
           </button>
 
           {isSeller && (
-            <button
-              onClick={() => setActiveTab("seller")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all text-left ${
-                activeTab === "seller"
-                  ? "bg-primary text-white shadow-soft"
-                  : "text-ink hover:bg-sunken/60"
-              }`}
-            >
-              <Store className="h-4 w-4 shrink-0" />
-              <span>Store Profile</span>
-            </button>
+            <>
+              <button
+                onClick={() => setActiveTab("seller")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all text-left ${
+                  activeTab === "seller"
+                    ? "bg-primary text-white shadow-soft"
+                    : "text-ink hover:bg-sunken/60"
+                }`}
+              >
+                <Store className="h-4 w-4 shrink-0" />
+                <span>Store Profile</span>
+              </button>
+              <Link
+                href="/seller/verification"
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold text-left text-ink hover:bg-sunken/60 transition-all"
+              >
+                <span className="flex min-w-0 items-center gap-3"><ShieldCheck className="h-4 w-4 shrink-0" /><span>Seller Verification</span></span>
+                <span className="max-w-24 truncate text-[10px] font-semibold text-muted">{verificationSummary}</span>
+              </Link>
+            </>
           )}
 
           <button

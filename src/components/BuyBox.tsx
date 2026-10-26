@@ -91,6 +91,14 @@ export function BuyBox({ product }: { product: Product }) {
   const identityVerified = product.sellerKycStatus === "approved";
   const businessVerified = product.sellerBusinessVerificationStatus === "approved";
   const sellerApproved = product.sellerApprovalStatus === "approved";
+  const sellerTrustBadge = businessVerified
+    ? { label: "Business verified", icon: ShieldCheck, className: "bg-accent/20 text-ink border-accent/30" }
+    : identityVerified
+      ? { label: "Identity verified", icon: ShieldCheck, className: "bg-success-soft text-success border-success/20" }
+      : sellerApproved
+        ? { label: "Approved seller", icon: Store, className: "bg-primary-soft text-primary-darker border-primary/20" }
+        : { label: "New seller", icon: User, className: "bg-sunken text-body border-line" };
+  const SellerTrustIcon = sellerTrustBadge.icon;
 
   function formatSellerTenure(dateString?: string): string {
     if (!dateString) return "1+ month on PriceAm";
@@ -366,36 +374,18 @@ export function BuyBox({ product }: { product: Product }) {
               )}
             </div>
 
-            {/* Badges Row */}
+            {/* One highest-value trust state; lower states are implied. */}
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sunken text-body text-[11px] font-semibold border border-line">
-                <User className="h-3 w-3 text-muted" />
-                {formatSellerTenure(product.sellerJoinedAt || product.createdAt)}
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[11px] font-bold ${sellerTrustBadge.className}`}>
+                <SellerTrustIcon className="h-3 w-3" />
+                {sellerTrustBadge.label}
               </span>
-              {identityVerified ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-success-soft text-success text-[11px] font-bold border border-success/20">
-                  <ShieldCheck className="h-3 w-3" />
-                  Identity verified
-                </span>
-              ) : null}
-              {businessVerified ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/20 text-ink text-[11px] font-bold border border-accent/30">
-                  <ShieldCheck className="h-3 w-3" />
-                  Business verified
-                </span>
-              ) : null}
-              {sellerApproved ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-soft text-primary-darker text-[11px] font-bold border border-primary/20">
-                  <Store className="h-3 w-3" />
-                  Approved seller
-                </span>
-              ) : null}
             </div>
 
-            {/* Response time */}
+            {/* Seller tenure */}
             <div className="flex items-center gap-1.5 text-[11px] text-muted mt-1.5 font-medium">
-              <Clock className="h-3 w-3 text-emerald-600" />
-              <span>Replies in a few hours</span>
+              <Clock className="h-3 w-3 text-primary" />
+              <span>{formatSellerTenure(product.sellerJoinedAt || product.createdAt)}</span>
             </div>
           </div>
         </div>

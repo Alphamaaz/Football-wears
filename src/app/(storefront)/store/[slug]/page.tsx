@@ -22,6 +22,13 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
   const joined = seller.sellerJoinedAt || seller.createdAt;
   const memberSince = new Intl.DateTimeFormat("en-NG", { month: "long", year: "numeric" }).format(new Date(joined));
   const locations = Array.from(new Set(products.map((product) => product.location?.state).filter(Boolean)));
+  const trustLabel = seller.sellerBusinessVerificationStatus === "approved"
+    ? "Business verified"
+    : seller.sellerKycStatus === "approved"
+      ? "Identity verified"
+      : seller.sellerApprovalStatus === "approved"
+        ? "Approved seller"
+        : "New seller";
 
   return (
     <div className="public-store-page">
@@ -36,9 +43,7 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
           <div>
             <h1>{storeName}</h1>
             <div className="flex flex-wrap gap-2">
-              {seller.sellerApprovalStatus === "approved" && <span><CheckCircle2 /> Approved seller</span>}
-              {seller.sellerKycStatus === "approved" && <span><CheckCircle2 /> Identity verified</span>}
-              {seller.sellerBusinessVerificationStatus === "approved" && <span><CheckCircle2 /> Business verified</span>}
+              <span><CheckCircle2 /> {trustLabel}</span>
             </div>
           </div>
           <p>Member since {memberSince}</p>
