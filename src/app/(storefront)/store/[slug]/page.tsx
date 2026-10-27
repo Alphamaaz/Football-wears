@@ -5,30 +5,29 @@ import { listSellerReviewsServer } from "@/lib/reviews";
 import { assetUrl } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
 import { StoreProfileActions } from "@/components/StoreProfileActions";
+import { getPublicSellerProfileServer } from "@/lib/sellers";
 
 export default async function PublicStorePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const result = await listProductsServer({ storeSlug: slug, limit: 24, sort: "newest" });
+  const [result, sellerProfile] = await Promise.all([
+    listProductsServer({ storeSlug: slug, limit: 24, sort: "newest" }),
+    getPublicSellerProfileServer(slug),
+  ]);
   const products = result.products;
-  if (!products.length) notFound();
+  if (!sellerProfile) notFound();
 
-  const seller = products[0];
-  const reviewResult = await listSellerReviewsServer(seller.seller);
+  const reviewResult = await listSellerReviewsServer(sellerProfile.id);
   const reviews = reviewResult.reviews;
-  const rating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : (seller.sellerRatingAverage || 0);
-  const ratingCount = seller.sellerRatingCount || reviewResult.total;
-  const storeName = seller.storeName || seller.sellerFullName || "PriceAm Store";
-  const storeImage = seller.sellerStoreImage || seller.sellerProfileImage;
-  const joined = seller.sellerJoinedAt || seller.createdAt;
+  const rating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : sellerProfile.ratingAverage;
+  const ratingCount = sellerProfile.ratingCount || reviewResult.total;
+  const storeName = sellerProfile.storeName || sellerProfile.fullName || "PriceAm Store";
+  const storeImage = sellerProfile.storeImage || sellerProfile.profileImage;
+  const joined = sellerProfile.memberSince;
   const memberSince = new Intl.DateTimeFormat("en-NG", { month: "long", year: "numeric" }).format(new Date(joined));
-  const locations = Array.from(new Set(products.map((product) => product.location?.state).filter(Boolean)));
-  const trustLabel = seller.sellerBusinessVerificationStatus === "approved"
-    ? "Business verified"
-    : seller.sellerKycStatus === "approved"
-      ? "Identity verified"
-      : seller.sellerApprovalStatus === "approved"
-        ? "Approved seller"
-        : "New seller";
+  const locations = sellerProfile.locations;
+  const trustLabel = sellerProfile.identityVerificationStatus === "approved"
+    ? "Identity verified"
+    : "Identity not verified";
 
   return (
     <div className="public-store-page">

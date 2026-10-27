@@ -245,7 +245,6 @@ export async function rejectSeller(userId: string, reason: string) {
 export interface VerificationApplication extends Pick<User, "_id" | "fullName" | "email" | "contactNumber" | "createdAt"> {
   sellerProfile: NonNullable<User["sellerProfile"]> & {
     identityVerification?: NonNullable<User["sellerProfile"]>["identityVerification"] & { idNumber?: string; documentFront?: string; documentBack?: string; selfie?: string };
-    businessVerification?: NonNullable<User["sellerProfile"]>["businessVerification"] & { registrationNumber?: string; registrationDocument?: string; addressDocument?: string };
   };
 }
 
@@ -253,7 +252,7 @@ export async function getVerificationApplications() {
   return api<{ applications: VerificationApplication[] }>("/admin/verifications");
 }
 
-export async function reviewVerification(userId: string, type: "identity" | "business", action: "approve" | "reject", reason?: string) {
+export async function reviewVerification(userId: string, type: "identity", action: "approve" | "reject", reason?: string) {
   return api<{ message: string }>(`/admin/verifications/${userId}`, { method: "PATCH", body: { type, action, reason } });
 }
 

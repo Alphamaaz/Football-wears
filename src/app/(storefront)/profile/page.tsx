@@ -377,16 +377,13 @@ export default function ProfilePage() {
 
   const isSeller = user.roles.includes("seller");
   const identityVerificationStatus = user.sellerProfile?.identityVerification?.status || user.sellerProfile?.kycStatus || "not_submitted";
-  const businessVerificationStatus = user.sellerProfile?.businessVerification?.status || "not_submitted";
-  const verificationSummary = businessVerificationStatus === "approved"
-    ? "Business verified"
-    : identityVerificationStatus === "approved"
+  const verificationSummary = identityVerificationStatus === "approved"
       ? "Identity verified"
-      : identityVerificationStatus === "pending" || businessVerificationStatus === "pending"
+      : identityVerificationStatus === "pending"
         ? "Application under review"
-        : identityVerificationStatus === "rejected" || businessVerificationStatus === "rejected"
+        : identityVerificationStatus === "rejected"
           ? "Action required"
-          : "Verify identity or business";
+          : "Identity not verified";
   const initials = user.fullName
     .split(" ")
     .map((w) => w[0])

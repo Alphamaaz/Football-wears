@@ -20,13 +20,6 @@ export interface SellerProfile {
     submittedAt?: string;
     rejectionReason?: string;
   };
-  businessVerification?: {
-    status: "not_submitted" | "pending" | "approved" | "rejected";
-    legalBusinessName?: string;
-    businessType?: "registered_business_name" | "limited_company" | "ngo" | "other";
-    submittedAt?: string;
-    rejectionReason?: string;
-  };
   approvalStatus: "pending" | "approved" | "rejected";
   approvedAt?: string;
   rejectedAt?: string;

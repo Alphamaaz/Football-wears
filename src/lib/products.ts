@@ -74,9 +74,7 @@ export interface Product {
   sellerStoreImage?: string;
   sellerProfileImage?: string;
   sellerJoinedAt?: string;
-  sellerApprovalStatus?: "pending" | "approved" | "rejected";
   sellerKycStatus?: "not_submitted" | "pending" | "approved" | "rejected";
-  sellerBusinessVerificationStatus?: "not_submitted" | "pending" | "approved" | "rejected";
   promotion?: { enabled: boolean; commissionPercent?: number; startsAt?: string; endsAt?: string };
   createdAt: string;
   updatedAt: string;
@@ -109,6 +107,7 @@ export interface ListProductsParams {
   inStock?: boolean;
   state?: string;
   negotiable?: boolean;
+  identityVerified?: boolean;
   sort?: ProductSort;
 }
 

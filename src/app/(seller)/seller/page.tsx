@@ -317,20 +317,9 @@ function SellerDashboardContent() {
                 <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
                   {storeName}
                 </h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-success-soft text-success border border-success/30 px-3 py-0.5 text-xs font-bold">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Approved seller
+                <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-0.5 text-xs font-bold ${user?.sellerProfile?.identityVerification?.status === "approved" || user?.sellerProfile?.kycStatus === "approved" ? "border-success/30 bg-success-soft text-success" : "border-line bg-sunken text-body"}`}>
+                  <ShieldCheck className="h-3.5 w-3.5" /> {user?.sellerProfile?.identityVerification?.status === "approved" || user?.sellerProfile?.kycStatus === "approved" ? "Identity verified" : "Identity not verified"}
                 </span>
-                {user?.sellerProfile?.identityVerification?.status === "approved" && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success-soft px-3 py-0.5 text-xs font-bold text-success">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Identity verified
-                  </span>
-                )}
-                {user?.sellerProfile?.businessVerification?.status === "approved" && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/20 px-3 py-0.5 text-xs font-bold text-ink">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Business verified
-                  </span>
-                )}
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">

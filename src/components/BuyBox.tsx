@@ -89,15 +89,9 @@ export function BuyBox({ product }: { product: Product }) {
   const sellerAvatar = product.sellerStoreImage || product.sellerProfileImage;
   const displayStoreName = product.storeName || product.sellerFullName || "Merchant Store";
   const identityVerified = product.sellerKycStatus === "approved";
-  const businessVerified = product.sellerBusinessVerificationStatus === "approved";
-  const sellerApproved = product.sellerApprovalStatus === "approved";
-  const sellerTrustBadge = businessVerified
-    ? { label: "Business verified", icon: ShieldCheck, className: "bg-accent/20 text-ink border-accent/30" }
-    : identityVerified
-      ? { label: "Identity verified", icon: ShieldCheck, className: "bg-success-soft text-success border-success/20" }
-      : sellerApproved
-        ? { label: "Approved seller", icon: Store, className: "bg-primary-soft text-primary-darker border-primary/20" }
-        : { label: "New seller", icon: User, className: "bg-sunken text-body border-line" };
+  const sellerTrustBadge = identityVerified
+    ? { label: "Identity verified", icon: ShieldCheck, className: "bg-success-soft text-success border-success/20" }
+    : { label: "Identity not verified", icon: User, className: "bg-sunken text-body border-line" };
   const SellerTrustIcon = sellerTrustBadge.icon;
 
   function formatSellerTenure(dateString?: string): string {

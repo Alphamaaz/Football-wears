@@ -20,6 +20,7 @@ import {
   PackageOpen,
   RotateCcw,
   Search,
+  ShieldCheck,
   Shirt,
   SlidersHorizontal,
   Smartphone,
@@ -135,6 +136,7 @@ export function MarketplaceCatalog({
   const [condition, setCondition] = useState<"" | "new" | "used">("");
   const [inStockOnly, setInStockOnly] = useState(false);
   const [negotiableOnly, setNegotiableOnly] = useState(false);
+  const [identityVerifiedOnly, setIdentityVerifiedOnly] = useState(false);
   const [sort, setSort] = useState<ProductSort>("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
     if (typeof window === "undefined") return "grid";
@@ -199,6 +201,7 @@ export function MarketplaceCatalog({
         inStock: inStockOnly || undefined,
         state: selectedState !== "All Nigeria" ? selectedState : undefined,
         negotiable: negotiableOnly ? true : undefined,
+        identityVerified: identityVerifiedOnly ? true : undefined,
         minPrice: appliedMin,
         maxPrice: appliedMax,
         sort,
@@ -222,6 +225,7 @@ export function MarketplaceCatalog({
     inStockOnly,
     selectedState,
     negotiableOnly,
+    identityVerifiedOnly,
     appliedMin,
     appliedMax,
     sort,
@@ -248,6 +252,7 @@ export function MarketplaceCatalog({
         inStock: inStockOnly || undefined,
         state: selectedState !== "All Nigeria" ? selectedState : undefined,
         negotiable: negotiableOnly ? true : undefined,
+        identityVerified: identityVerifiedOnly ? true : undefined,
         minPrice: appliedMin,
         maxPrice: appliedMax,
         sort,
@@ -276,6 +281,7 @@ export function MarketplaceCatalog({
     inStockOnly,
     selectedState,
     negotiableOnly,
+    identityVerifiedOnly,
     appliedMin,
     appliedMax,
     sort,
@@ -309,6 +315,7 @@ export function MarketplaceCatalog({
     setCondition("");
     setInStockOnly(false);
     setNegotiableOnly(false);
+    setIdentityVerifiedOnly(false);
     setSelectedPresetIndex(0);
     setCustomMin("");
     setCustomMax("");
@@ -325,6 +332,7 @@ export function MarketplaceCatalog({
     (appliedMin !== undefined || appliedMax !== undefined ? 1 : 0) +
     (inStockOnly ? 1 : 0) +
     (negotiableOnly ? 1 : 0) +
+    (identityVerifiedOnly ? 1 : 0) +
     (search ? 1 : 0);
 
   return (
@@ -696,8 +704,21 @@ export function MarketplaceCatalog({
             </div>
           </div>
 
-          {/* 5. Toggles (Negotiable & In Stock) */}
+          {/* 5. Trust and availability filters */}
           <div className="space-y-3 pt-4 border-t border-line">
+            <label className="flex items-center justify-between cursor-pointer group">
+              <span className="text-xs font-semibold text-ink group-hover:text-primary transition-colors flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-success" />
+                Identity Verified Only
+              </span>
+              <input
+                type="checkbox"
+                checked={identityVerifiedOnly}
+                onChange={(e) => setIdentityVerifiedOnly(e.target.checked)}
+                className="h-4 w-4 rounded accent-primary cursor-pointer"
+              />
+            </label>
+
             <label className="flex items-center justify-between cursor-pointer group">
               <span className="text-xs font-semibold text-ink group-hover:text-primary transition-colors flex items-center gap-1.5">
                 <Handshake className="h-3.5 w-3.5 text-primary" />
@@ -781,6 +802,12 @@ export function MarketplaceCatalog({
                   <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
                     <span>Price Am Only</span>
                     <button onClick={() => setNegotiableOnly(false)} className="hover:opacity-75">✕</button>
+                  </span>
+                )}
+                {identityVerifiedOnly && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success-soft px-3 py-1 text-xs font-semibold text-success">
+                    <span>Identity verified</span>
+                    <button onClick={() => setIdentityVerifiedOnly(false)} className="hover:opacity-75" aria-label="Remove identity verified filter">✕</button>
                   </span>
                 )}
                 <button
@@ -995,6 +1022,15 @@ export function MarketplaceCatalog({
 
               {/* Toggles */}
               <div className="space-y-2 pt-2 border-t border-line">
+                <label className="flex items-center justify-between text-xs font-semibold text-ink">
+                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-success" /> Identity Verified Only</span>
+                  <input
+                    type="checkbox"
+                    checked={identityVerifiedOnly}
+                    onChange={(e) => setIdentityVerifiedOnly(e.target.checked)}
+                    className="h-4 w-4 rounded accent-primary"
+                  />
+                </label>
                 <label className="flex items-center justify-between text-xs font-semibold text-ink">
                   <span>Price Am Only</span>
                   <input

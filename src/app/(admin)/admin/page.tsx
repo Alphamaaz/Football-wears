@@ -1973,7 +1973,7 @@ export default function AdminDashboardPage() {
                   required
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="e.g. Incomplete business verification, store name requires adjustment..."
+                  placeholder="e.g. Identity documents need correction, store name requires adjustment..."
                   className="w-full rounded-2xl border border-line bg-surface px-4 py-2.5 text-xs text-ink focus:outline-none focus:ring-4 focus:ring-primary/15 focus:border-primary"
                 />
               </div>
