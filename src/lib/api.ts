@@ -10,6 +10,19 @@ import type { ApiError } from "./types";
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
+/**
+ * Absolute API URL for React Server Components.
+ *
+ * Production browsers use the same-origin `/api/v1` proxy, but Node's fetch
+ * cannot resolve a relative URL. The backend is intentionally bound to
+ * localhost on the VPS, so server rendering should use that private address.
+ */
+export const SERVER_API_URL =
+  process.env.API_INTERNAL_URL ??
+  (API_URL.startsWith("http://") || API_URL.startsWith("https://")
+    ? API_URL
+    : "http://127.0.0.1:5000/api/v1");
+
 /** Origin serving static assets (product images) — API host without /api/v1 */
 export const ASSET_URL = API_URL.replace(/\/api\/v1\/?$/, "");
 

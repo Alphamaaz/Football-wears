@@ -1,6 +1,6 @@
 /* Products API — mirrors Backend/src/modules/products */
 
-import { api, apiForm, API_URL } from "./api";
+import { api, apiForm, SERVER_API_URL } from "./api";
 
 export interface ProductImage {
   url: string;
@@ -147,7 +147,7 @@ export async function listProductsServer(
   params: ListProductsParams = {},
 ): Promise<ProductListResponse> {
   try {
-    const res = await fetch(`${API_URL}/products${toQuery(params)}`, {
+    const res = await fetch(`${SERVER_API_URL}/products${toQuery(params)}`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error(String(res.status));
@@ -160,7 +160,7 @@ export async function listProductsServer(
 /** Server-side detail for RSC pages. Returns null when missing/unavailable. */
 export async function getProductServer(id: string): Promise<Product | null> {
   try {
-    const res = await fetch(`${API_URL}/products/${id}`, { cache: "no-store" });
+    const res = await fetch(`${SERVER_API_URL}/products/${id}`, { cache: "no-store" });
     if (!res.ok) return null;
     const data = (await res.json()) as { product: Product };
     return data.product;

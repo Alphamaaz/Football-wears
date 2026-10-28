@@ -1,4 +1,4 @@
-import { api, API_URL } from "./api";
+import { api, SERVER_API_URL } from "./api";
 
 export interface QuestionAuthor {
   _id: string;
@@ -38,7 +38,7 @@ export async function listProductQuestions(productId: string, page = 1) {
 
 export async function listProductQuestionsServer(productId: string): Promise<QuestionListResponse> {
   try {
-    const res = await fetch(`${API_URL}/questions/products/${productId}?page=1&limit=20`, {
+    const res = await fetch(`${SERVER_API_URL}/questions/products/${productId}?page=1&limit=20`, {
       next: { revalidate: 30 },
     });
     if (!res.ok) return { questions: [], total: 0, page: 1, pages: 1 };

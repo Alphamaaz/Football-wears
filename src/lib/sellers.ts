@@ -1,4 +1,4 @@
-import { API_URL } from "./api";
+import { SERVER_API_URL } from "./api";
 
 export interface PublicSellerProfile {
   id: string;
@@ -18,7 +18,7 @@ export interface PublicSellerProfile {
 
 export async function getPublicSellerProfileServer(storeSlug: string): Promise<PublicSellerProfile | null> {
   try {
-    const response = await fetch(`${API_URL}/users/sellers/${encodeURIComponent(storeSlug)}`, { cache: "no-store" });
+    const response = await fetch(`${SERVER_API_URL}/users/sellers/${encodeURIComponent(storeSlug)}`, { cache: "no-store" });
     if (!response.ok) return null;
     const data = (await response.json()) as { seller: PublicSellerProfile };
     return data.seller;

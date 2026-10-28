@@ -25,6 +25,7 @@ import { addWishlistItem, removeWishlistItem } from "@/lib/wishlist";
 import { notifyCommerceChanged } from "@/lib/commerce-events";
 import { openListingConversation } from "@/lib/chat";
 import { createOffer } from "@/lib/offers";
+import { Logo } from "@/components/Logo";
 
 export function MobileProductDetail({ product, rating, ratingCount }: { product: Product; rating: number; ratingCount: number }) {
   const router = useRouter();
@@ -106,7 +107,7 @@ export function MobileProductDetail({ product, rating, ratingCount }: { product:
     <article className="mobile-product-detail md:hidden">
       <header className="mobile-product-header">
         <button type="button" onClick={() => router.back()} aria-label="Go back"><ArrowLeft /></button>
-        <strong>PRICE AM</strong>
+        <Logo className="mobile-product-logo" />
         <div><button type="button" onClick={shareProduct} aria-label="Share product"><Share2 /></button><button type="button" disabled={busy} onClick={toggleWishlist} aria-label="Save product"><Heart className={saved ? "fill-primary text-primary" : ""} /></button></div>
       </header>
 
