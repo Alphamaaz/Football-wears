@@ -8,9 +8,11 @@ import type { PendingSeller } from "@/lib/admin";
 import { ApiRequestError, tokenStore } from "@/lib/api";
 import { Alert, Button } from "@/components/ui";
 import { Logo } from "@/components/Logo";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 export default function AdminSellersPage() {
   const router = useRouter();
+  const dialog = useAppDialog();
   const [ready, setReady] = useState(false);
   const [applicants, setApplicants] = useState<PendingSeller[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +54,16 @@ export default function AdminSellersPage() {
   }
 
   async function onReject(id: string) {
-    const reason = window.prompt("Reason for rejection:");
+    const reason = await dialog.prompt({
+      title: "Reject seller application",
+      description: "Give the applicant a clear reason and explain what they need to change before applying again.",
+      label: "Reason for rejection",
+      placeholder: "Describe the missing or incorrect information.",
+      confirmLabel: "Reject application",
+      tone: "danger",
+      minLength: 10,
+      maxLength: 500,
+    });
     if (!reason) return;
     setBusyId(id);
     setError(null);

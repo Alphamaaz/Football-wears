@@ -76,6 +76,7 @@ import { approvePayout, confirmPayout } from "@/lib/payouts";
 import type { User } from "@/lib/types";
 import { Logo } from "@/components/Logo";
 import { Button, Input } from "@/components/ui";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 const CATEGORY_ICON_PRESETS = [
   { name: "Smartphone", label: "Phone", icon: Smartphone },
@@ -110,6 +111,7 @@ const NAV_SHORTCUTS = [
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const dialog = useAppDialog();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -169,6 +171,13 @@ export default function AdminDashboardPage() {
     setActionNotice(msg);
     setTimeout(() => setActionNotice(null), 4500);
   };
+
+  const showErrorDialog = (title: string, error: unknown, fallback: string) => dialog.alert({
+    title,
+    description: error instanceof Error ? error.message : fallback,
+    confirmLabel: "Close",
+    tone: "danger",
+  });
 
   const fetchAnalytics = useCallback(async () => {
     try {
@@ -331,7 +340,7 @@ export default function AdminDashboardPage() {
       await loadCategories();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save category";
-      alert(msg);
+      await dialog.alert({ title: "Category was not saved", description: msg, confirmLabel: "Close", tone: "danger" });
     } finally {
       setCategorySaving(false);
     }
@@ -349,7 +358,7 @@ export default function AdminDashboardPage() {
       await loadCategories();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update status";
-      alert(msg);
+      await dialog.alert({ title: "Category status was not updated", description: msg, confirmLabel: "Close", tone: "danger" });
     } finally {
       setBusyActionId(null);
     }
@@ -357,7 +366,12 @@ export default function AdminDashboardPage() {
 
   async function handleDeleteCategory(cat: Category) {
     if (!cat._id) {
-      alert("Default seed category cannot be directly deleted without a database record. You can customize or add categories freely.");
+      await dialog.alert({
+        title: "Default category cannot be deleted",
+        description: "This category has no database record. You can create a replacement category or customize categories that have been saved.",
+        confirmLabel: "Got it",
+        tone: "info",
+      });
       return;
     }
     const hasProducts = Boolean(cat.productCount && cat.productCount > 0);
@@ -365,7 +379,13 @@ export default function AdminDashboardPage() {
       ? `"${cat.name}" has ${cat.productCount} active product(s). To protect seller listings, deleting it will automatically safely DEACTIVATE and hide it from the storefront. Continue?`
       : `Are you sure you want to permanently delete category "${cat.name}"?`;
 
-    if (!confirm(confirmPrompt)) return;
+    const confirmed = await dialog.confirm({
+      title: hasProducts ? "Hide this category?" : "Delete this category?",
+      description: confirmPrompt,
+      confirmLabel: hasProducts ? "Hide category" : "Delete category",
+      tone: "danger",
+    });
+    if (!confirmed) return;
 
     setBusyActionId(cat._id);
     try {
@@ -374,7 +394,7 @@ export default function AdminDashboardPage() {
       await loadCategories();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete category";
-      alert(msg);
+      await dialog.alert({ title: "Category was not deleted", description: msg, confirmLabel: "Close", tone: "danger" });
     } finally {
       setBusyActionId(null);
     }
@@ -388,7 +408,7 @@ export default function AdminDashboardPage() {
       showNotice("Merchant approved successfully! Store is now verified to sell.");
       await fetchAnalytics();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to approve seller");
+      await showErrorDialog("Seller was not approved", err, "Failed to approve seller");
     } finally {
       setBusyActionId(null);
     }
@@ -405,7 +425,7 @@ export default function AdminDashboardPage() {
       setRejectReason("");
       await fetchAnalytics();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to reject seller");
+      await showErrorDialog("Seller application was not rejected", err, "Failed to reject seller");
     } finally {
       setBusyActionId(null);
     }
@@ -426,7 +446,7 @@ export default function AdminDashboardPage() {
       setCompletionDecisionNote("");
       await fetchAnalytics();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to review delivery proof");
+      await showErrorDialog("Delivery proof was not updated", err, "Failed to review delivery proof");
     } finally {
       setBusyActionId(null);
     }
@@ -440,7 +460,7 @@ export default function AdminDashboardPage() {
       showNotice("Payout approved for manual settlement!");
       await fetchAnalytics();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to approve payout");
+      await showErrorDialog("Payout was not approved", err, "Failed to approve payout");
     } finally {
       setBusyActionId(null);
     }
@@ -460,7 +480,7 @@ export default function AdminDashboardPage() {
       setTransferReference("");
       await fetchAnalytics();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to confirm payout");
+      await showErrorDialog("Payout was not confirmed", err, "Failed to confirm payout");
     } finally {
       setBusyActionId(null);
     }
@@ -478,21 +498,27 @@ export default function AdminDashboardPage() {
       setAdminAnswerText("");
       await fetchAnalytics();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to post answer");
+      await showErrorDialog("Answer was not published", err, "Failed to post answer");
     } finally {
       setBusyActionId(null);
     }
   }
 
   async function handleHideQuestion(questionId: string) {
-    if (!confirm("Are you sure you want to hide this question from the product page?")) return;
+    const confirmed = await dialog.confirm({
+      title: "Hide this question?",
+      description: "The question will no longer appear on the public product page. The moderation record will remain available to administrators.",
+      confirmLabel: "Hide question",
+      tone: "warning",
+    });
+    if (!confirmed) return;
     setBusyActionId(questionId);
     try {
       await hideQuestion(questionId);
       showNotice("Question moderated and hidden from marketplace.");
       await fetchAnalytics();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to hide question");
+      await showErrorDialog("Question was not hidden", err, "Failed to hide question");
     } finally {
       setBusyActionId(null);
     }
@@ -506,7 +532,7 @@ export default function AdminDashboardPage() {
       setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, isActive: res.user.isActive } : u)));
       showNotice(res.message);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Could not toggle user status");
+      await showErrorDialog("User status was not updated", err, "Could not toggle user status");
     } finally {
       setBusyActionId(null);
     }
@@ -514,7 +540,10 @@ export default function AdminDashboardPage() {
 
   // CSV Exporters
   function exportUsersCsv() {
-    if (!users.length) return alert("No user rows to export. Please open the Users tab.");
+    if (!users.length) {
+      void dialog.alert({ title: "No users to export", description: "Open the Users tab and wait for the directory to load before exporting.", confirmLabel: "Got it", tone: "info" });
+      return;
+    }
     const headers = ["ID", "Full Name", "Email", "Phone", "Roles", "Store Name", "Status", "Registered At"];
     const rows = users.map((u) => [
       u._id,
@@ -532,7 +561,10 @@ export default function AdminDashboardPage() {
 
   function exportOrdersCsv() {
     const list = analytics?.orders.recent || [];
-    if (!list.length) return alert("No order rows available to export.");
+    if (!list.length) {
+      void dialog.alert({ title: "No orders to export", description: "There are currently no order rows available in this report.", confirmLabel: "Got it", tone: "info" });
+      return;
+    }
     const headers = ["Order ID", "Total (NGN)", "Status", "Source", "Date"];
     const rows = list.map((o) => [o._id, o.total, o.orderStatus, o.source || "offer", o.createdAt]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");

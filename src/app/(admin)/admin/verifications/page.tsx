@@ -8,11 +8,13 @@ import { getMe } from "@/lib/auth";
 import { getVerificationApplications, openVerificationDocument, reviewVerification, type VerificationApplication } from "@/lib/admin";
 import { ApiRequestError, tokenStore } from "@/lib/api";
 import { Alert, Button } from "@/components/ui";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 type Filter = "pending" | "approved" | "rejected" | "all";
 
 export default function AdminVerificationsPage() {
   const router = useRouter();
+  const dialog = useAppDialog();
   const [applications, setApplications] = useState<VerificationApplication[] | null>(null);
   const [filter, setFilter] = useState<Filter>("pending");
   const [busy, setBusy] = useState<string | null>(null);
@@ -48,11 +50,20 @@ export default function AdminVerificationsPage() {
   const rows = useMemo(() => allRows.filter((row) => filter === "all" || row.verification.status === filter), [allRows, filter]);
 
   async function decide(userId: string, type: "identity", action: "approve" | "reject") {
-    const reason = action === "reject" ? window.prompt("Explain what the seller must correct:")?.trim() : undefined;
+    const reason = action === "reject" ? await dialog.prompt({
+      title: "Request identity correction",
+      description: "Explain exactly what the seller must correct before submitting their identity documents again.",
+      label: "Correction required",
+      placeholder: "For example: Upload a clear, uncropped photo of the front of your ID.",
+      confirmLabel: "Send correction request",
+      tone: "warning",
+      minLength: 10,
+      maxLength: 500,
+    }) : undefined;
     if (action === "reject" && !reason) return;
     const key = `${userId}-${type}`;
     setBusy(key); setError(null);
-    try { await reviewVerification(userId, type, action, reason); await load(); }
+    try { await reviewVerification(userId, type, action, reason || undefined); await load(); }
     catch (caught) { setError(caught instanceof ApiRequestError ? caught.message : "Could not update verification."); }
     finally { setBusy(null); }
   }

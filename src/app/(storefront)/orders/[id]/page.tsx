@@ -24,6 +24,7 @@ import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { Alert, Button } from "@/components/ui";
 import { notifyCommerceChanged } from "@/lib/commerce-events";
 import { OrderReviewSection } from "@/components/OrderReviewSection";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 function getStatusBadge(status: OrderStatus) {
   switch (status) {
@@ -51,6 +52,7 @@ function getStatusBadge(status: OrderStatus) {
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const dialog = useAppDialog();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -91,7 +93,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   async function handleConfirmComplete() {
-    if (!confirm("Are you sure? Confirm that you have inspected and received the item, and payment has been made.")) {
+    const confirmed = await dialog.confirm({
+      title: "Confirm this deal is complete?",
+      description: "Only continue after you have inspected and received the item and paid the seller directly. This marks the deal as completed.",
+      confirmLabel: "Confirm completion",
+      tone: "warning",
+    });
+    if (!confirmed) {
       return;
     }
     setError(null);

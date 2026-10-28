@@ -19,9 +19,11 @@ import { listMyProducts, removeProduct } from "@/lib/products";
 import type { Product } from "@/lib/products";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { Alert, Button } from "@/components/ui";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 function SellerProductsList() {
   const router = useRouter();
+  const dialog = useAppDialog();
   const searchParams = useSearchParams();
   const justUpdated = searchParams.get("updated") === "1";
   const justSubmitted = searchParams.get("submitted") === "1";
@@ -53,7 +55,13 @@ function SellerProductsList() {
   }, [router]);
 
   async function onRemove(id: string, title: string) {
-    if (!window.confirm(`Are you sure you want to remove "${title}"? Buyers will no longer be able to discover or Price Am this listing.`)) {
+    const confirmed = await dialog.confirm({
+      title: "Remove this listing?",
+      description: `“${title}” will disappear from marketplace search and buyers will no longer be able to make offers on it.`,
+      confirmLabel: "Remove listing",
+      tone: "danger",
+    });
+    if (!confirmed) {
       return;
     }
     setBusyId(id);

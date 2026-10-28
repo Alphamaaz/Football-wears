@@ -28,6 +28,7 @@ import { addCartItem } from "@/lib/cart";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { notifyCommerceChanged } from "@/lib/commerce-events";
 import { Button } from "@/components/ui";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 const CATEGORY_LINKS = [
   { id: "electronics", label: "Electronics", icon: Headphones },
@@ -39,6 +40,7 @@ const CATEGORY_LINKS = [
 
 export default function WishlistPage() {
   const router = useRouter();
+  const dialog = useAppDialog();
 
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,13 @@ export default function WishlistPage() {
   }
 
   async function onClearAll() {
-    if (!confirm("Are you sure you want to clear your entire wishlist?")) return;
+    const confirmed = await dialog.confirm({
+      title: "Clear your wishlist?",
+      description: "This removes every saved listing from your wishlist. You cannot undo this action.",
+      confirmLabel: "Clear wishlist",
+      tone: "danger",
+    });
+    if (!confirmed) return;
     setClearing(true);
     setError(null);
     try {

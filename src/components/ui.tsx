@@ -10,7 +10,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
 };
 
-export function Button({
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   variant = "primary",
   size = "md",
   full,
@@ -19,7 +19,7 @@ export function Button({
   className = "",
   children,
   ...props
-}: ButtonProps) {
+}: ButtonProps, ref) {
   const base =
     "relative inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100";
   const sizes = {
@@ -37,6 +37,7 @@ export function Button({
   };
   return (
     <button
+      ref={ref}
       className={`${base} ${sizes[size]} ${variants[variant]} ${full ? "w-full" : ""} ${className}`}
       disabled={disabled || loading}
       {...props}
@@ -45,7 +46,7 @@ export function Button({
       {children}
     </button>
   );
-}
+});
 
 export const Input = forwardRef<
   HTMLInputElement,
