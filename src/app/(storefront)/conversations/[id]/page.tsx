@@ -43,11 +43,18 @@ export default function ConversationPage() {
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showSafety, setShowSafety] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const safetyRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+  const scrollToBottom = (behavior: ScrollBehavior = "auto") => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    if (behavior === "smooth") {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    } else {
+      container.scrollTop = container.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -92,7 +99,11 @@ export default function ConversationPage() {
 
   useEffect(() => {
     if (messages.length > 0) {
-      scrollToBottom(messages.length <= 1 ? "auto" : "smooth");
+      scrollToBottom("auto");
+      const frameId = requestAnimationFrame(() => {
+        scrollToBottom("auto");
+      });
+      return () => cancelAnimationFrame(frameId);
     }
   }, [messages.length]);
 
@@ -135,6 +146,9 @@ export default function ConversationPage() {
       setError(requestError instanceof ApiRequestError ? requestError.message : "Message could not be sent.");
     } finally {
       setSending(false);
+      setTimeout(() => {
+        textareaRef.current?.focus({ preventScroll: true });
+      }, 0);
     }
   }
 
@@ -152,6 +166,7 @@ export default function ConversationPage() {
 
   function insertQuickPrompt(promptText: string) {
     setText((prev) => (prev ? `${prev} ${promptText}` : promptText));
+    textareaRef.current?.focus({ preventScroll: true });
   }
 
   if (loading) {
@@ -300,7 +315,10 @@ export default function ConversationPage() {
         ) : <span><Package /></span>}<div><strong>{product.title}</strong><small><MapPin /> {[product.location?.city, product.location?.state].filter(Boolean).join(", ") || "Product listing"}{typeof product.price === "number" ? ` · ₦${product.price.toLocaleString()}` : ""}</small></div><ArrowRight /></Link>}
 
         {/* Message Thread */}
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 bg-sunken/40 px-4 py-4 sm:px-6">
+        <div
+          ref={messagesContainerRef}
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-3 bg-sunken/40 px-4 py-4 sm:px-6"
+        >
           {nextCursor && (
             <Button
               type="button"
@@ -352,7 +370,6 @@ export default function ConversationPage() {
               </div>
             );
           })}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Input & Quick Chips */}
@@ -382,6 +399,7 @@ export default function ConversationPage() {
           {isOpen ? (
             <form onSubmit={onSubmit} className="flex items-center gap-2">
               <textarea
+                ref={textareaRef}
                 value={text}
                 onChange={(event) => setText(event.target.value)}
                 onKeyDown={onKeyDown}
@@ -397,6 +415,7 @@ export default function ConversationPage() {
               <button
                 type="submit"
                 disabled={sending || !text.trim()}
+                onMouseDown={(e) => e.preventDefault()}
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-white hover:bg-primary-dark disabled:opacity-40 transition-transform active:scale-95 shadow-soft"
                 aria-label="Send message"
               >

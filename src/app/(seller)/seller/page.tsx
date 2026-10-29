@@ -317,8 +317,8 @@ function SellerDashboardContent() {
                 <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
                   {storeName}
                 </h1>
-                <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-0.5 text-xs font-bold ${user?.sellerProfile?.identityVerification?.status === "approved" || user?.sellerProfile?.kycStatus === "approved" ? "border-success/30 bg-success-soft text-success" : "border-line bg-sunken text-body"}`}>
-                  <ShieldCheck className="h-3.5 w-3.5" /> {user?.sellerProfile?.identityVerification?.status === "approved" || user?.sellerProfile?.kycStatus === "approved" ? "Identity verified" : "Identity not verified"}
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold whitespace-nowrap shrink-0 ${user?.sellerProfile?.identityVerification?.status === "approved" || user?.sellerProfile?.kycStatus === "approved" ? "border-success/30 bg-success-soft text-success" : "border-line bg-sunken text-body"}`}>
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0" /> {user?.sellerProfile?.identityVerification?.status === "approved" || user?.sellerProfile?.kycStatus === "approved" ? "Identity verified" : "Identity not verified"}
                 </span>
               </div>
 
@@ -341,8 +341,8 @@ function SellerDashboardContent() {
           {/* Quick Action Header Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
             <Link href="/seller/verification">
-              <Button variant="outline" size="md" className="rounded-2xl px-4 font-bold">
-                <ShieldCheck className="h-4 w-4 text-primary" /> Verification
+              <Button variant="outline" size="md" className="rounded-2xl px-4 font-bold whitespace-nowrap">
+                <ShieldCheck className="h-4 w-4 text-primary shrink-0" /> Verification
               </Button>
             </Link>
             <button

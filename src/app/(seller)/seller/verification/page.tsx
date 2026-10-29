@@ -71,9 +71,21 @@ export default function SellerVerificationPage() {
     <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
       <Link href="/seller" className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-muted hover:text-primary"><ArrowLeft className="h-4 w-4" /> Back to seller dashboard</Link>
       <header className="rounded-3xl border border-line bg-surface p-5 shadow-soft sm:p-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-2xl"><h1 className="text-2xl font-black text-ink sm:text-3xl">Identity verification</h1><p className="mt-2 text-sm leading-relaxed text-body">Verify your identity with a valid Nigerian ID and a clear selfie. Your public badge appears only after an administrator approves your documents.</p></div>
-          <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${statusCopy[currentStatus].className}`}><CurrentStatusIcon className="h-4 w-4" /> {statusCopy[currentStatus].label}</span>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1 sm:pr-6">
+            <h1 className="text-2xl font-black text-ink sm:text-3xl">Identity verification</h1>
+            <p className="mt-2 text-sm leading-relaxed text-body">
+              Verify your identity with a valid Nigerian ID and a clear selfie. Your public badge appears only after an administrator approves your documents.
+            </p>
+          </div>
+          <div className="shrink-0 self-start sm:self-auto sm:pt-1">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 shadow-2xs ${statusCopy[currentStatus].className}`}
+            >
+              <CurrentStatusIcon className="h-4 w-4 shrink-0" />
+              {statusCopy[currentStatus].label}
+            </span>
+          </div>
         </div>
         <div className="mt-6 flex items-start gap-3 rounded-2xl bg-sunken/60 p-4">
           <IdCard className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
@@ -97,7 +109,7 @@ export default function SellerVerificationPage() {
                 <div className="grid gap-4 sm:grid-cols-2"><FileField name="identityDocumentFront" label="Front of ID" required /><FileField name="identityDocumentBack" label="Back of ID (if applicable)" /></div><FileField name="selfie" label="Clear selfie holding your ID" required />
               </>
               <div className="rounded-2xl bg-warning/10 p-4 text-xs leading-relaxed text-body"><ShieldCheck className="mr-2 inline h-4 w-4 text-primary" />Your documents are stored privately and are available only to authorised administrators reviewing your application.</div>
-              <Button type="submit" loading={busy} className="min-h-12 w-full rounded-2xl sm:w-auto"><Upload className="h-4 w-4" /> Submit for review</Button>
+              <Button type="submit" loading={busy} className="min-h-12 w-full rounded-2xl sm:w-auto"><Upload className="h-4 w-4 shrink-0" /> Submit for review</Button>
             </form>
           )}
         </div>

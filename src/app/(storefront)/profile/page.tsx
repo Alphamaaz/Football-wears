@@ -643,10 +643,10 @@ export default function ProfilePage() {
               </button>
               <Link
                 href="/seller/verification"
-                className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold text-left text-ink hover:bg-sunken/60 transition-all"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold text-left text-ink hover:bg-sunken/60 transition-all whitespace-nowrap"
               >
-                <span className="flex min-w-0 items-center gap-3"><ShieldCheck className="h-4 w-4 shrink-0" /><span>Seller Verification</span></span>
-                <span className="max-w-24 truncate text-[10px] font-semibold text-muted">{verificationSummary}</span>
+                <ShieldCheck className="h-4 w-4 shrink-0" />
+                <span className="whitespace-nowrap">Seller Verification</span>
               </Link>
             </>
           )}

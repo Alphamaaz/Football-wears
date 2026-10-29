@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Handshake, ShieldCheck } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 
 const COLUMNS = [
@@ -40,6 +43,12 @@ const COLUMNS = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/conversations/")) {
+    return null;
+  }
+
   return (
     <footer className="mt-auto hidden border-t border-line bg-surface sm:block">
       {/* Trust bar */}

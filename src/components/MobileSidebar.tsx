@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -78,13 +79,35 @@ export function MobileSidebar() {
             <button type="button" className="seller-drawer-close" aria-label="Close menu" onClick={close}><X /></button>
             <div className="seller-drawer-profile">
               {user?.profileImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={assetUrl(user.profileImage)} alt="" />
-              ) : <span>{profile.initials}</span>}
-              <div>
-                <h2>{profile.name}</h2>
-                <strong>{isAdmin ? "Marketplace administrator" : isSeller ? "Seller" : user ? "Buyer" : "Nigeria’s marketplace"}</strong>
-                <p>{profile.memberSince ? `Member since ${profile.memberSince}` : "Find it. Price it. Make the deal."}</p>
+                <Link href="/profile" onClick={close} className="seller-drawer-avatar-link" aria-label="My Profile">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={assetUrl(user.profileImage)} alt={profile.name} className="seller-drawer-avatar" />
+                </Link>
+              ) : user ? (
+                <Link href="/profile" onClick={close} className="seller-drawer-avatar-link" aria-label="My Profile">
+                  <span className="seller-drawer-avatar seller-drawer-initials">{profile.initials}</span>
+                </Link>
+              ) : (
+                <Link href="/" onClick={close} className="seller-drawer-logo-badge" aria-label="PriceAm Home">
+                  <Image src="/logo/PA.svg" alt="PriceAm" width={48} height={37} className="seller-drawer-logo-img" priority />
+                </Link>
+              )}
+              <div className="seller-drawer-profile-info">
+                <h2>
+                  {user ? (
+                    profile.name
+                  ) : (
+                    <>
+                      Welcome to <span className="seller-drawer-brand-name">PriceAm</span>
+                    </>
+                  )}
+                </h2>
+                <strong className="seller-drawer-slogan-sub">
+                  {isAdmin ? "Marketplace administrator" : isSeller ? "Seller" : user ? "Buyer" : "Nigeria’s marketplace"}
+                </strong>
+                <p className="seller-drawer-slogan-tag">
+                  {profile.memberSince ? `Member since ${profile.memberSince}` : "Find it. Price it. Make the deal."}
+                </p>
               </div>
             </div>
 
