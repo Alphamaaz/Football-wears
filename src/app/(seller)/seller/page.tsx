@@ -133,6 +133,8 @@ function MobileSellerDashboard({
 
       {error && <Alert kind="error">{error}</Alert>}
 
+      <SellerVerificationPrompt user={user} compact />
+
       <button type="button" onClick={onRefresh} className="seller-revenue-card" disabled={refreshing}>
         <span className="seller-revenue-label">Total revenue</span>
         <span className="seller-revenue-period"><CalendarDays /> All time</span>
@@ -176,6 +178,50 @@ function MobileSellerDashboard({
         )}
       </section>
     </main>
+  );
+}
+
+function SellerVerificationPrompt({ user, compact = false }: { user: User | null; compact?: boolean }) {
+  const verification = user?.sellerProfile?.identityVerification;
+  const status = verification?.status || user?.sellerProfile?.kycStatus || "not_submitted";
+
+  if (status === "approved") return null;
+
+  const isPending = status === "pending";
+  const isRejected = status === "rejected";
+  const title = isPending
+    ? "Identity check under review"
+    : isRejected
+      ? "Identity check needs attention"
+      : "Verify your identity";
+  const description = isPending
+    ? "We’ve received your documents. You can keep managing your store while an administrator reviews them."
+    : isRejected
+      ? verification?.rejectionReason || "Review the verification feedback and submit clear replacement documents."
+      : "Complete a quick identity check to earn the Identity verified badge and appear in verified-seller filters.";
+  const action = isPending ? "View submission" : isRejected ? "Fix and resubmit" : "Start verification";
+  const tone = isPending
+    ? "border-[#c8d8f4] bg-[#eef4ff] text-[#315a91]"
+    : isRejected
+      ? "border-danger/25 bg-danger-soft text-danger"
+      : "border-warning/45 bg-warning-soft text-[#765119]";
+
+  return (
+    <section
+      className={`seller-verification-prompt ${tone} ${compact ? "is-compact" : ""}`}
+      aria-labelledby={compact ? "mobile-verification-title" : "desktop-verification-title"}
+    >
+      <div className="seller-verification-prompt-icon" aria-hidden="true">
+        {isRejected ? <AlertCircle /> : <ShieldCheck />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <h2 id={compact ? "mobile-verification-title" : "desktop-verification-title"}>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <Link href="/seller/verification" className="seller-verification-prompt-action">
+        {action}<ArrowUpRight aria-hidden="true" />
+      </Link>
+    </section>
   );
 }
 
@@ -372,6 +418,8 @@ function SellerDashboardContent() {
           </div>
         </div>
       </section>
+
+      <SellerVerificationPrompt user={user} />
 
       {error && <Alert kind="error">{error}</Alert>}
 
