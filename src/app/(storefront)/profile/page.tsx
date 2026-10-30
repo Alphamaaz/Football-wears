@@ -32,6 +32,9 @@ import { changePassword, getMe } from "@/lib/auth";
 import { switchRole, updateProfile } from "@/lib/users";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { Button } from "@/components/ui";
+import { PasswordInput } from "@/components/PasswordInput";
+import { disconnectRealtime } from "@/lib/realtime";
+import { getPasswordValidationError, PASSWORD_REQUIREMENTS } from "@/lib/password";
 import type { Role, User } from "@/lib/types";
 
 type SettingsTab = "profile" | "security" | "address" | "seller" | "notifications";
@@ -60,6 +63,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [mobileEditing, setMobileEditing] = useState(false);
+  const [mobileSecurity, setMobileSecurity] = useState(false);
 
   // Mode switching state
   const [switchingRole, setSwitchingRole] = useState(false);
@@ -270,8 +274,13 @@ export default function ProfilePage() {
       setGlobalError("Current password is required.");
       return;
     }
-    if (newPassword.length < 6) {
-      setGlobalError("New password must be at least 6 characters.");
+    const passwordError = getPasswordValidationError(newPassword);
+    if (passwordError) {
+      setGlobalError(passwordError);
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setGlobalError("Choose a new password that is different from your current password.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -282,11 +291,13 @@ export default function ProfilePage() {
     setSavingPassword(true);
     try {
       await changePassword({ currentPassword, newPassword });
-      setGlobalSuccess("Password changed successfully!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setTimeout(() => setGlobalSuccess(null), 4000);
+      disconnectRealtime();
+      tokenStore.clear();
+      router.replace("/login?changed=1");
+      router.refresh();
     } catch (err) {
       setGlobalError(
         err instanceof ApiRequestError ? err.message : "Failed to change password.",
@@ -394,7 +405,7 @@ export default function ProfilePage() {
   return (
     <>
       <main className="mobile-account-page md:hidden">
-        {!mobileEditing ? (
+        {!mobileEditing && !mobileSecurity ? (
           <>
             <section className="mobile-account-identity">
               <div className="mobile-account-avatar">{profileImagePreview || user.profileImage ? (
@@ -402,7 +413,7 @@ export default function ProfilePage() {
                 <img src={profileImagePreview || assetUrl(user.profileImage!)} alt={user.fullName} />
               ) : initials}<span><CheckCircle2 /></span></div>
               <h1>{user.fullName}</h1>
-              <strong>{user.activeRole === "seller" ? "Seller" : "Buyer"}</strong>
+              <strong>{user.roles.includes("admin") ? "Administrator" : user.activeRole === "seller" ? "Seller" : "Buyer"}</strong>
               <p>Member since {new Intl.DateTimeFormat("en-NG", { month: "long", year: "numeric" }).format(new Date(user.createdAt))}</p>
             </section>
             {globalError && <p className="mobile-account-notice is-error">{globalError}</p>}
@@ -412,13 +423,14 @@ export default function ProfilePage() {
               <div>
                 <button type="button" onClick={() => setMobileEditing(true)}><span><Pencil /></span><span><strong>Update Profile</strong><small>Name, phone and photos</small></span><ChevronRight /></button>
                 <button type="button" onClick={() => setMobileEditing(true)}><span><Mail /></span><span><strong>{user.email}</strong><small>{user.emailVerified ? "Email verified" : "Email verification required"}</small></span><ChevronRight /></button>
+                <button type="button" onClick={() => { setGlobalError(null); setMobileSecurity(true); }}><span><Lock /></span><span><strong>Change Password</strong><small>Update your account password securely</small></span><ChevronRight /></button>
                 {isSeller && <Link href="/seller/verification"><span><ShieldCheck /></span><span><strong>Seller Verification</strong><small>{verificationSummary}</small></span><ChevronRight /></Link>}
               </div>
               <button type="button" className="mobile-account-logout" onClick={handleSignOut}><span><LogOut /></span><strong>Logout</strong></button>
             </section>
             <div className="mobile-account-links"><Link href="/contact">Help Center</Link><span /><Link href="/terms">Terms of Service</Link></div>
           </>
-        ) : (
+        ) : mobileEditing ? (
           <section className="mobile-profile-edit">
             <header><button type="button" onClick={() => setMobileEditing(false)} aria-label="Back to profile"><ArrowLeft /></button><h1>Update Profile</h1><span /></header>
             {globalError && <p className="mobile-account-notice is-error">{globalError}</p>}
@@ -436,6 +448,52 @@ export default function ProfilePage() {
               {isSeller && <label className="mobile-profile-field is-area"><span>Store description</span><textarea value={sellerBio} onChange={(event) => setSellerBio(event.target.value)} placeholder="Tell buyers about your store" /></label>}
               <p className="mobile-profile-email">Email: {user.email}</p>
               <button type="submit" className="mobile-profile-save" disabled={savingProfile}>{savingProfile ? "Saving…" : "Save Changes"}</button>
+            </form>
+          </section>
+        ) : (
+          <section className="mobile-profile-edit mobile-security-edit">
+            <header><button type="button" onClick={() => { setGlobalError(null); setMobileSecurity(false); }} aria-label="Back to profile"><ArrowLeft /></button><h1>Change Password</h1><span /></header>
+            {globalError && <p className="mobile-account-notice is-error" role="alert">{globalError}</p>}
+            <form onSubmit={handleSavePassword}>
+              <div className="mobile-security-field">
+                <label htmlFor="mobile-current-password">Current password</label>
+                <PasswordInput
+                  id="mobile-current-password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  autoComplete="current-password"
+                  maxLength={128}
+                  required
+                  placeholder="Enter your current password"
+                />
+              </div>
+              <div className="mobile-security-field">
+                <label htmlFor="mobile-new-password">New password</label>
+                <PasswordInput
+                  id="mobile-new-password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                  maxLength={128}
+                  required
+                  placeholder="Create a new password"
+                />
+              </div>
+              <p className="mobile-security-guidance">{PASSWORD_REQUIREMENTS}</p>
+              <div className="mobile-security-field">
+                <label htmlFor="mobile-confirm-password">Confirm new password</label>
+                <PasswordInput
+                  id="mobile-confirm-password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  autoComplete="new-password"
+                  maxLength={128}
+                  required
+                  placeholder="Enter the new password again"
+                />
+              </div>
+              <button type="submit" className="mobile-profile-save" disabled={savingPassword}>{savingPassword ? "Changing password…" : "Change Password"}</button>
+              <p className="mobile-security-session-note">For your protection, you will be asked to log in again after changing your password.</p>
             </form>
           </section>
         )}
@@ -904,44 +962,51 @@ export default function ProfilePage() {
 
               <form onSubmit={handleSavePassword} className="space-y-4 max-w-lg">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink uppercase tracking-wider">
+                  <label htmlFor="current-password" className="text-xs font-bold text-ink uppercase tracking-wider">
                     Current Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
+                    id="current-password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
+                    maxLength={128}
                     placeholder="Enter current password"
-                    className="w-full h-11 rounded-2xl border border-line bg-sunken/60 px-4 text-xs sm:text-sm text-ink focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    className="rounded-2xl bg-sunken/60 text-sm focus:bg-surface"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink uppercase tracking-wider">
+                  <label htmlFor="new-password" className="text-xs font-bold text-ink uppercase tracking-wider">
                     New Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
+                    id="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    placeholder="Minimum 6 characters"
-                    className="w-full h-11 rounded-2xl border border-line bg-sunken/60 px-4 text-xs sm:text-sm text-ink focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    autoComplete="new-password"
+                    maxLength={128}
+                    placeholder="Create a new password"
+                    className="rounded-2xl bg-sunken/60 text-sm focus:bg-surface"
                   />
+                  <p className="text-[11px] leading-5 text-muted">{PASSWORD_REQUIREMENTS}</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink uppercase tracking-wider">
+                  <label htmlFor="confirm-new-password" className="text-xs font-bold text-ink uppercase tracking-wider">
                     Confirm New Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
+                    id="confirm-new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    placeholder="Re-type new password"
-                    className="w-full h-11 rounded-2xl border border-line bg-sunken/60 px-4 text-xs sm:text-sm text-ink focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    autoComplete="new-password"
+                    maxLength={128}
+                    placeholder="Enter the new password again"
+                    className="rounded-2xl bg-sunken/60 text-sm focus:bg-surface"
                   />
                 </div>
 
@@ -955,6 +1020,9 @@ export default function ProfilePage() {
                     {savingPassword ? "Updating…" : "Update Password"}
                   </Button>
                 </div>
+                <p className="text-[11px] leading-5 text-muted">
+                  Changing your password signs you out of active sessions. You will need to log in again.
+                </p>
               </form>
 
               {/* Active Session Info Card */}

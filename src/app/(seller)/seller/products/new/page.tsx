@@ -11,6 +11,7 @@ import {
   ImagePlus,
   Info,
   MapPin,
+  Mail,
   Package,
   Play,
   Plus,
@@ -394,11 +395,15 @@ export default function NewProductPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted">Need help?</span>
-            <span className="rounded-lg bg-sunken px-2.5 py-1 text-xs font-semibold text-ink border border-line">
-              Direct Peer-to-Peer Settlement
-            </span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted">Need help?</span>
+            <a
+              href="mailto:support@priceam.ng?subject=Help%20with%20a%20Price%20Am%20listing"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 font-semibold text-primary transition-colors hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              support@priceam.ng
+            </a>
           </div>
         </div>
       </div>

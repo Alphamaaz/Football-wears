@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Bug, Mail, ShieldCheck } from "lucide-react";
+import { ContactSupportForm } from "@/components/ContactSupportForm";
 
 export const metadata: Metadata = {
   title: "Contact Us | Price Am",
@@ -14,10 +15,11 @@ export default function ContactPage() {
     <article className="info-page contact-page">
       <div className="info-page-back"><Link href="/"><ArrowLeft /> Back to marketplace</Link></div>
       <header className="info-page-hero">
-        <span>Support</span>
         <h1>Contact Us – Price Am</h1>
-        <p>The Price Am customer support team is ready to answer your questions and provide the assistance you need.</p>
+        <p>Price Am currently provides customer support by email. Send your question to <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> and our team will assist you.</p>
       </header>
+
+      <ContactSupportForm />
 
       <section className="contact-grid" aria-label="Contact options">
         <article className="contact-card">

@@ -28,6 +28,9 @@ const links = [
 export function SellerWorkspaceNav() {
   const pathname = usePathname();
 
+  // Store setup is a focused onboarding flow, not part of the seller workspace.
+  if (pathname === "/seller/onboarding") return null;
+
   return (
     <>
       <aside className="seller-rail hidden lg:flex">

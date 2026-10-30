@@ -4,24 +4,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowRight,
+  ArrowLeft,
   BarChart3,
   CheckCircle2,
-  Handshake,
-  Image as ImageIcon,
   PackagePlus,
   ShieldCheck,
-  Sparkles,
   Store,
   Trash2,
   Upload,
-  Zap,
 } from "lucide-react";
 import { getMe } from "@/lib/auth";
 import { applyToSell } from "@/lib/users";
 import { ApiRequestError, tokenStore } from "@/lib/api";
 import { Alert, Button, Input, Label } from "@/components/ui";
-import { Logo } from "@/components/Logo";
 import type { SellerProfile, User } from "@/lib/types";
 
 export default function SellerOnboardingPage() {
@@ -99,24 +94,20 @@ export default function SellerOnboardingPage() {
     );
   }
 
-  // Instant Success Screen (After just launching)
   if (createdProfile) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-16 sm:py-24 bg-[radial-gradient(ellipse_at_top,_rgba(240,118,43,0.12)_0%,_transparent_70%)]">
-        <div className="rounded-3xl bg-surface border border-line p-8 sm:p-12 shadow-lifted text-center max-w-lg w-full space-y-6 animate-fade-in-up">
+      <main className="flex min-h-[calc(100vh-80px)] flex-1 items-center justify-center bg-cream px-4 py-12 sm:py-20">
+        <div className="w-full max-w-lg space-y-6 rounded-3xl border border-line bg-surface p-7 text-center shadow-lifted sm:p-10 animate-fade-in-up">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-success-soft text-success shadow-soft">
             <CheckCircle2 className="h-11 w-11" />
           </div>
 
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft text-success px-3 py-1 text-xs font-bold">
-              <Zap className="h-3.5 w-3.5 fill-current" /> Store Active & Live
-            </span>
             <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
-              Congratulations! Your Store is Ready 🎉
+              Your seller store is ready
             </h1>
             <p className="text-xs sm:text-sm text-body leading-relaxed max-w-md mx-auto">
-              <strong className="text-ink">{createdProfile.storeName}</strong> is now live on PriceAm. You can post listings immediately, receive customer Price Am offers, and sell across Nigeria.
+              <strong className="text-ink">{createdProfile.storeName}</strong> has been created. Add your first listing and submit it for review before buyers can see it.
             </p>
           </div>
 
@@ -125,7 +116,7 @@ export default function SellerOnboardingPage() {
               priceam.ng/store/{createdProfile.storeSlug}
             </span>
             <span className="shrink-0 px-2 py-0.5 rounded-md bg-primary-soft text-primary font-bold text-[11px]">
-              Live
+              Created
             </span>
           </div>
 
@@ -148,18 +139,17 @@ export default function SellerOnboardingPage() {
     );
   }
 
-  // Already a seller screen
   if (user?.roles.includes("seller") && user?.sellerProfile?.approvalStatus === "approved") {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-20 bg-[radial-gradient(ellipse_at_top,_rgba(240,118,43,0.08)_0%,_transparent_70%)]">
+      <main className="flex min-h-[calc(100vh-80px)] flex-1 items-center justify-center bg-cream px-4 py-16">
         <div className="rounded-3xl bg-surface border border-line p-8 sm:p-10 shadow-lifted text-center max-w-md w-full space-y-5">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-success-soft text-success shadow-soft">
             <CheckCircle2 className="h-9 w-9" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-ink">You are already a Merchant 🎉</h1>
+            <h1 className="text-2xl font-black text-ink">Your seller store is active</h1>
             <p className="text-xs sm:text-sm text-muted mt-1 leading-relaxed">
-              Your store <strong className="text-ink">{user.sellerProfile?.storeName}</strong> is active. You can manage your listings, analyze real-time performance, and accept buyer Price Am offers anytime.
+              Manage <strong className="text-ink">{user.sellerProfile?.storeName}</strong>, review buyer offers, and keep your listings up to date from the seller dashboard.
             </p>
           </div>
           
@@ -188,88 +178,31 @@ export default function SellerOnboardingPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8 sm:py-12 bg-[radial-gradient(ellipse_at_top,_rgba(240,118,43,0.08)_0%,_transparent_70%)]">
-      <div className="w-full max-w-4xl grid lg:grid-cols-12 gap-8 items-start">
-        {/* Left Side: Merchant Benefits (5 cols) */}
-        <div className="hidden lg:flex lg:col-span-5 flex-col space-y-6 pt-2">
-          <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
-            <Logo variant="wordmark" />
-          </Link>
+    <main className="min-h-[calc(100vh-80px)] bg-cream px-4 py-8 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full max-w-2xl">
+        <Link
+          href="/"
+          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-muted transition-colors hover:text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to marketplace
+        </Link>
 
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft/80 border border-primary/20 px-3 py-1 text-xs font-bold text-primary">
-              <Zap className="h-3.5 w-3.5 fill-current" />
-              Instant Seller Activation
-            </span>
-            <h2 className="text-2xl font-black text-ink tracking-tight mt-3 leading-snug">
-              Launch your store & start selling right away.
-            </h2>
-            <p className="text-xs sm:text-sm text-body mt-2 leading-relaxed">
-              No waiting for manual approvals. Post your items instantly, receive automated Price Am offers, and sell with zero upfront fees.
+        <section className="overflow-hidden rounded-3xl border border-line bg-surface shadow-lifted">
+          <div className="border-b border-line px-5 py-6 sm:px-8 sm:py-7">
+            <h1 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">
+              Create your seller store
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+              Choose a store name and public link. You can add your logo now or complete it later from your profile.
             </p>
           </div>
 
-          <div className="space-y-3 pt-2">
-            <div className="flex items-start gap-3 rounded-2xl bg-surface border border-line p-3.5 shadow-soft">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                <Zap className="h-4 w-4 fill-current" />
-              </span>
-              <div>
-                <h4 className="text-xs font-bold text-ink">Instant Listing & Go-Live</h4>
-                <p className="text-[11px] text-muted">Post your products immediately. No review delays or waiting periods.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 rounded-2xl bg-surface border border-line p-3.5 shadow-soft">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-ink">
-                <Handshake className="h-4 w-4 text-primary" />
-              </span>
-              <div>
-                <h4 className="text-xs font-bold text-ink">Automated Price Am Negotiation</h4>
-                <p className="text-[11px] text-muted">Set reserve prices. The platform auto-counters buyer offers on your terms.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 rounded-2xl bg-surface border border-line p-3.5 shadow-soft">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-success-soft text-success">
-                <ShieldCheck className="h-4 w-4" />
-              </span>
-              <div>
-                <h4 className="text-xs font-bold text-ink">Direct Buyer Connections</h4>
-                <p className="text-[11px] text-muted">Connect directly with buyers via WhatsApp and phone to agree and seal deals safely.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 rounded-2xl bg-surface border border-line p-3.5 shadow-soft">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <div>
-                <h4 className="text-xs font-bold text-ink">0% Listing Fees</h4>
-                <p className="text-[11px] text-muted">Free store creation. Pay zero monthly subscription fees.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Side: Instant Onboarding Card (7 cols) */}
-        <div className="w-full lg:col-span-7">
-          <div className="rounded-3xl bg-surface border border-line p-6 sm:p-8 shadow-lifted">
-            <div className="mb-6">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success-soft text-success text-[11px] font-bold mb-2">
-                <Zap className="h-3 w-3 fill-current" /> Instant Setup — 30 Seconds
-              </div>
-              <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
-                Launch Your Seller Store
-              </h1>
-              <p className="text-xs sm:text-sm text-muted mt-1">
-                Enter your store name and pick your public link to start listing products immediately.
-              </p>
-            </div>
+          <div className="px-5 py-6 sm:px-8 sm:py-8">
 
             {error && <div className="mb-5"><Alert kind="error">{error}</Alert></div>}
 
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-5">
               {/* Store Details */}
               <div>
                 <Label htmlFor="storeName" className="text-xs font-bold text-ink">
@@ -334,15 +267,14 @@ export default function SellerOnboardingPage() {
                 />
               </div>
 
-              {/* Storefront Logo (Optional) */}
-              <div className="rounded-2xl border border-line bg-sunken/40 p-4 space-y-3">
+              <div className="space-y-3 border-t border-line pt-5">
                 <div>
                   <Label className="text-xs font-bold text-ink flex items-center justify-between">
                     <span>Store Logo / Brand Photo</span>
                     <span className="text-muted font-normal text-[11px]">Optional</span>
                   </Label>
                   <p className="text-[11px] text-muted mt-0.5">
-                    Recommended square image (JPG, PNG, WebP up to 10MB). You can also add or change this later.
+                    Use a square JPG, PNG, or WebP image up to 10MB.
                   </p>
                 </div>
 
@@ -396,8 +328,13 @@ export default function SellerOnboardingPage() {
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="pt-2">
+              <div className="space-y-4 pt-2">
+                <div className="flex items-start gap-3 rounded-2xl bg-success-soft/60 px-4 py-3 text-left">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+                  <p className="text-xs leading-5 text-body">
+                    Your store can accept listings after setup. Every listing is reviewed before it becomes visible to buyers.
+                  </p>
+                </div>
                 <Button
                   type="submit"
                   full
@@ -408,20 +345,16 @@ export default function SellerOnboardingPage() {
                   {submitting ? (
                     "Activating Your Store…"
                   ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <Zap className="h-4 w-4 fill-current" />
-                      Launch Store & Start Selling Instantly
-                      <ArrowRight className="h-4 w-4" />
-                    </span>
+                    "Create seller store"
                   )}
                 </Button>
                 <p className="text-[11px] text-center text-muted mt-2">
-                  By clicking launch, you agree to PriceAm Merchant Terms & Safety Guidelines.
+                  By continuing, you agree to the PriceAm Merchant Terms and Safety Guidelines.
                 </p>
               </div>
             </form>
           </div>
-        </div>
+        </section>
       </div>
     </main>
   );

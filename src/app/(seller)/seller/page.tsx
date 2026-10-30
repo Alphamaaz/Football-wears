@@ -125,7 +125,7 @@ function MobileSellerDashboard({
               <Link href="/seller/verification" onClick={() => setMenuOpen(false)}><ShieldCheck /><span>Verification</span></Link>
               <Link href="/orders" onClick={() => setMenuOpen(false)}><Truck /><span>Orders</span></Link>
               <Link href="/conversations" onClick={() => setMenuOpen(false)}><Bell /><span>Notifications</span></Link>
-              <Link href="/conversations?support=true" onClick={() => setMenuOpen(false)}><HelpCircle /><span>Help</span></Link>
+              <Link href="/contact" onClick={() => setMenuOpen(false)}><HelpCircle /><span>Help &amp; Support</span></Link>
             </nav>
           </aside>
         </div>

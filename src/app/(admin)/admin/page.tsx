@@ -107,6 +107,7 @@ const NAV_SHORTCUTS = [
   { href: "/admin/listings", title: "Listing Moderation", countKey: "pendingListingsCount" as const, icon: Package, color: "text-primary", bg: "bg-primary/10" },
   { href: "/admin/verifications", title: "Verification Requests", countKey: "pendingVerificationCount" as const, icon: ShieldCheck, color: "text-amber-500", bg: "bg-amber-500/10" },
   { href: "/admin/reports", title: "Listing Reports", countKey: "openListingReportsCount" as const, icon: MessageSquareWarning, color: "text-danger", bg: "bg-danger/10" },
+  { href: "/admin/support", title: "Support Requests", countKey: "openSupportTicketsCount" as const, icon: LifeBuoy, color: "text-primary", bg: "bg-primary/10" },
 ];
 
 export default function AdminDashboardPage() {
@@ -601,6 +602,7 @@ export default function AdminDashboardPage() {
     (queues?.pendingVerificationCount || 0) +
     (queues?.openDisputesCount || 0) +
     (queues?.openListingReportsCount || 0) +
+    (queues?.openSupportTicketsCount || 0) +
     (queues?.unansweredQuestionsCount || 0);
 
   return (
@@ -713,6 +715,12 @@ export default function AdminDashboardPage() {
                     {queues?.openDisputesCount} Disputes
                   </button>
                 )}
+                {(queues?.openSupportTicketsCount || 0) > 0 && (
+                  <Link href="/admin/support" className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/20">
+                    <LifeBuoy className="h-3.5 w-3.5" />
+                    {queues?.openSupportTicketsCount} Support Requests
+                  </Link>
+                )}
                 {(queues?.pendingSellersCount || 0) > 0 && (
                   <button
                     onClick={() => { setActiveTab("requests"); setRequestFilter("sellers"); }}
@@ -787,13 +795,13 @@ export default function AdminDashboardPage() {
           {/* Card 4: Marketplace reports */}
           <div className="rounded-3xl border border-line bg-surface p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Reported Issues</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider">Support &amp; Reports</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-danger/10 text-danger">
                 <BadgeAlert className="h-4 w-4" />
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-black text-ink">
-              {((queues?.openListingReportsCount || 0) + (queues?.openDisputesCount || 0)).toLocaleString()}
+              {((queues?.openListingReportsCount || 0) + (queues?.openDisputesCount || 0) + (queues?.openSupportTicketsCount || 0)).toLocaleString()}
             </div>
             <div className="text-[11px] text-muted truncate">
               Buyer questions: <strong className="text-ink font-bold">{(queues?.unansweredQuestionsCount || 0).toLocaleString()}</strong>
@@ -834,7 +842,7 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Operational Shortcuts */}
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {NAV_SHORTCUTS.map((item) => {
             const count = queues ? (queues[item.countKey] as number) : 0;
             return (
@@ -871,7 +879,7 @@ export default function AdminDashboardPage() {
           {[
             { id: "overview", label: "Overview", icon: BarChart3 },
             { id: "requests", label: "Seller Approvals", count: queues?.pendingSellersCount || 0, icon: Inbox },
-            { id: "support", label: "Support & Reports", count: (queues?.openDisputesCount || 0) + (queues?.unansweredQuestionsCount || 0), icon: LifeBuoy },
+            { id: "support", label: "Support & Reports", count: (queues?.openDisputesCount || 0) + (queues?.unansweredQuestionsCount || 0) + (queues?.openSupportTicketsCount || 0), icon: LifeBuoy },
             { id: "users", label: "Users & Stores", icon: Users },
             { id: "categories", label: "Categories", icon: Tag },
             { id: "activity", label: "Activity", icon: Activity },
@@ -1314,6 +1322,12 @@ export default function AdminDashboardPage() {
         {/* ========================================================================= */}
         {activeTab === "support" && (
           <div className="space-y-8">
+            <section className="rounded-3xl border border-line bg-surface p-6 shadow-soft sm:p-7">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><h3 className="flex items-center gap-2 text-base font-bold text-ink"><LifeBuoy className="h-5 w-5 text-primary" /> Customer support requests ({queues?.openSupportTicketsCount || 0} open)</h3><p className="mt-1 text-xs leading-relaxed text-muted">Questions submitted through the Contact page, with requester details, statuses, responses, and internal notes.</p></div>
+                <Link href="/admin/support"><Button className="min-h-11 rounded-xl">Open support queue <ArrowUpRight className="h-4 w-4" /></Button></Link>
+              </div>
+            </section>
             {/* SUB-SECTION A: OPEN DISPUTES */}
             <section className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-line">

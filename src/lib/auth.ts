@@ -79,7 +79,7 @@ export async function changePassword(input: {
   currentPassword: string;
   newPassword: string;
 }) {
-  return api<{ message: string }>("/auth/change-password", {
+  return api<{ message: string; requiresLogin: boolean }>("/auth/change-password", {
     method: "POST",
     body: input,
   });

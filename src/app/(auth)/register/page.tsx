@@ -8,6 +8,7 @@ import { register } from "@/lib/auth";
 import { ApiRequestError } from "@/lib/api";
 import { Alert, Button, Input, Label } from "@/components/ui";
 import { PasswordInput } from "@/components/PasswordInput";
+import { getPasswordValidationError, PASSWORD_REQUIREMENTS } from "@/lib/password";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -30,8 +31,9 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setFieldErrors({ password: "Password must be at least 6 characters." });
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setFieldErrors({ password: passwordError });
       return;
     }
 
@@ -139,9 +141,10 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 required
-                minLength={6}
+                minLength={8}
+                maxLength={128}
                 autoComplete="new-password"
-                placeholder="Min 6 characters"
+                placeholder="Create a strong password"
                 className="h-11 rounded-2xl text-sm"
               />
             </div>
@@ -157,7 +160,8 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 name="confirmPassword"
                 required
-                minLength={6}
+                minLength={8}
+                maxLength={128}
                 autoComplete="new-password"
                 placeholder="Repeat password"
                 className="h-11 rounded-2xl text-sm"
@@ -168,6 +172,8 @@ export default function RegisterPage() {
             )}
           </div>
         </div>
+
+        <p className="-mt-2 text-[11px] leading-5 text-muted">{PASSWORD_REQUIREMENTS}</p>
 
         <div className="rounded-2xl bg-sunken/60 border border-line p-3 text-[11px] text-muted leading-relaxed flex items-start gap-2">
           <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />

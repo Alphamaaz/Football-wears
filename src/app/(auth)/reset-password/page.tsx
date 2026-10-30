@@ -8,6 +8,7 @@ import { resetPassword } from "@/lib/auth";
 import { ApiRequestError } from "@/lib/api";
 import { Alert, Button, Input, Label } from "@/components/ui";
 import { PasswordInput } from "@/components/PasswordInput";
+import { getPasswordValidationError, PASSWORD_REQUIREMENTS } from "@/lib/password";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -30,8 +31,9 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -112,9 +114,10 @@ function ResetPasswordForm() {
                 id="password"
                 name="password"
                 required
-                minLength={6}
+                minLength={8}
+                maxLength={128}
                 autoComplete="new-password"
-                placeholder="Min 6 chars"
+                placeholder="Create a strong password"
                 className="h-11 rounded-2xl text-sm"
               />
             </div>
@@ -127,7 +130,8 @@ function ResetPasswordForm() {
                 id="confirmPassword"
                 name="confirmPassword"
                 required
-                minLength={6}
+                minLength={8}
+                maxLength={128}
                 autoComplete="new-password"
                 placeholder="Repeat password"
                 className="h-11 rounded-2xl text-sm"
@@ -135,6 +139,8 @@ function ResetPasswordForm() {
             </div>
           </div>
         </div>
+
+        <p className="-mt-2 text-[11px] leading-5 text-muted">{PASSWORD_REQUIREMENTS}</p>
 
         <div className="pt-2">
           <Button

@@ -124,6 +124,7 @@ export interface AdminAnalyticsData {
     pendingVerificationCount?: number;
     openDisputesCount: number;
     openListingReportsCount?: number;
+    openSupportTicketsCount?: number;
     pendingCompletionCount: number;
     eligiblePayoutsCount: number;
     unansweredQuestionsCount: number;
