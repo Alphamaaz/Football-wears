@@ -20,7 +20,6 @@ import {
   Phone,
   Save,
   ShieldCheck,
-  Smartphone,
   Sparkles,
   Store,
   Trash2,
@@ -1081,28 +1080,6 @@ export default function ProfilePage() {
                   Changing your password signs you out of active sessions. You will need to log in again.
                 </p>
               </form>
-
-              {/* Active Session Info Card */}
-              <div className="pt-6 border-t border-line space-y-3">
-                <h3 className="text-xs font-bold text-ink uppercase tracking-wider">
-                  Active Login Session
-                </h3>
-                <div className="rounded-2xl border border-line bg-sunken/40 p-4 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <Smartphone className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className="text-xs font-bold text-ink">Current Web Browser</p>
-                      <p className="text-[11px] text-muted">Signed in with active JWT token · Nigeria</p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-success">
-                    <span className="h-2 w-2 rounded-full bg-success" />
-                    Online
-                  </span>
-                </div>
-              </div>
 
               {!user.roles.includes("admin") && (
                 <div className="pt-6 border-t border-line">
