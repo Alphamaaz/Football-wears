@@ -15,6 +15,7 @@ function LoginForm() {
   const justVerified = searchParams.get("verified") === "1";
   const justReset = searchParams.get("reset") === "1";
   const justChanged = searchParams.get("changed") === "1";
+  const justDeleted = searchParams.get("deleted") === "1";
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -74,6 +75,13 @@ function LoginForm() {
         <div className="mb-5 rounded-2xl bg-success-soft border border-success/30 p-3.5 text-xs text-success font-semibold flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>Your password was changed securely. Log in again with your new password.</span>
+        </div>
+      )}
+
+      {justDeleted && (
+        <div className="mb-5 rounded-2xl bg-success-soft border border-success/30 p-3.5 text-xs text-success font-semibold flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>Your PriceAm account was deleted successfully.</span>
         </div>
       )}
 

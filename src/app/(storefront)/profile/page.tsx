@@ -29,7 +29,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { changePassword, getMe } from "@/lib/auth";
-import { switchRole, updateProfile } from "@/lib/users";
+import { deleteAccount, switchRole, updateProfile } from "@/lib/users";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { Button } from "@/components/ui";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -89,6 +89,11 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   // Delivery Address State (saved in localStorage for peer-to-peer delivery)
   const [addressStreet, setAddressStreet] = useState("");
@@ -148,6 +153,20 @@ export default function ProfilePage() {
 
     return () => clearTimeout(t);
   }, [router]);
+
+  useEffect(() => {
+    if (!deleteDialogOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !deletingAccount) setDeleteDialogOpen(false);
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [deleteDialogOpen, deletingAccount]);
 
   async function handleSwitchRole(role: Exclude<Role, "admin">) {
     if (!user || user.activeRole === role || switchingRole) return;
@@ -371,8 +390,45 @@ export default function ProfilePage() {
   }
 
   function handleSignOut() {
+    disconnectRealtime();
     tokenStore.clear();
     router.replace("/login");
+  }
+
+  function openDeleteDialog() {
+    setDeletePassword("");
+    setDeleteConfirmation("");
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+  }
+
+  async function handleDeleteAccount(event: React.FormEvent) {
+    event.preventDefault();
+    setDeleteError(null);
+    if (!deletePassword) {
+      setDeleteError("Enter your current password.");
+      return;
+    }
+    if (deleteConfirmation !== "DELETE") {
+      setDeleteError("Type DELETE exactly as shown to continue.");
+      return;
+    }
+
+    setDeletingAccount(true);
+    try {
+      await deleteAccount({ currentPassword: deletePassword, confirmation: "DELETE" });
+      disconnectRealtime();
+      tokenStore.clear();
+      localStorage.removeItem("pricem_user_address");
+      router.replace("/login?deleted=1");
+      router.refresh();
+    } catch (err) {
+      setDeleteError(
+        err instanceof ApiRequestError ? err.message : "We could not delete your account. Please try again.",
+      );
+    } finally {
+      setDeletingAccount(false);
+    }
   }
 
   if (loading || !user) {
@@ -427,6 +483,7 @@ export default function ProfilePage() {
                 {isSeller && <Link href="/seller/verification"><span><ShieldCheck /></span><span><strong>Seller Verification</strong><small>{verificationSummary}</small></span><ChevronRight /></Link>}
               </div>
               <button type="button" className="mobile-account-logout" onClick={handleSignOut}><span><LogOut /></span><strong>Logout</strong></button>
+              {!user.roles.includes("admin") && <button type="button" className="mobile-account-delete" onClick={openDeleteDialog}><Trash2 /><span><strong>Delete account</strong><small>Permanently close this PriceAm account</small></span></button>}
             </section>
             <div className="mobile-account-links"><Link href="/contact">Help Center</Link><span /><Link href="/terms">Terms of Service</Link></div>
           </>
@@ -1046,6 +1103,23 @@ export default function ProfilePage() {
                   </span>
                 </div>
               </div>
+
+              {!user.roles.includes("admin") && (
+                <div className="pt-6 border-t border-line">
+                  <div className="rounded-2xl border border-danger/25 bg-danger-soft/50 p-5 sm:flex sm:items-center sm:justify-between sm:gap-5">
+                    <div>
+                      <h3 className="text-sm font-bold text-ink">Delete account</h3>
+                      <p className="mt-1 max-w-xl text-xs leading-5 text-muted">
+                        Permanently close your buyer and seller account. Active deals or disputes must be resolved first.
+                      </p>
+                    </div>
+                    <Button type="button" variant="outline" onClick={openDeleteDialog} className="mt-4 shrink-0 border-danger/40 text-danger hover:border-danger hover:text-danger sm:mt-0">
+                      <Trash2 className="h-4 w-4" />
+                      Delete account
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1346,6 +1420,52 @@ export default function ProfilePage() {
         </main>
       </div>
     </div>
+    {deleteDialogOpen && (
+      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-ink/55 p-0 backdrop-blur-[2px] sm:items-center sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !deletingAccount) setDeleteDialogOpen(false); }}>
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-title"
+          aria-describedby="delete-account-description"
+          className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[2rem] border border-line bg-surface p-5 shadow-2xl sm:max-w-lg sm:rounded-[2rem] sm:p-7"
+        >
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-danger-soft text-danger"><Trash2 className="h-5 w-5" /></span>
+            <div className="min-w-0 flex-1">
+              <h2 id="delete-account-title" className="text-xl font-black text-ink">Delete your PriceAm account?</h2>
+              <p id="delete-account-description" className="mt-1 text-xs leading-5 text-muted">
+                This permanently removes your profile and verification files. Seller listings will be hidden and pending offers will expire.
+              </p>
+            </div>
+            <button type="button" onClick={() => setDeleteDialogOpen(false)} disabled={deletingAccount} className="rounded-full px-2 py-1 text-xl leading-none text-muted hover:bg-sunken hover:text-ink" aria-label="Close delete account dialog">×</button>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-line bg-sunken/60 p-4 text-xs leading-5 text-body">
+            <strong className="block text-ink">Before you continue</strong>
+            Active deals, disputes, or seller payouts must be resolved first. Completed transaction and safety records are retained in anonymized form for marketplace protection.
+          </div>
+
+          <form onSubmit={handleDeleteAccount} className="mt-5 space-y-4">
+            {deleteError && <div className="rounded-xl border border-danger/25 bg-danger-soft px-4 py-3 text-xs font-semibold text-danger" role="alert">{deleteError}</div>}
+            <div>
+              <label htmlFor="delete-account-password" className="mb-1.5 block text-xs font-bold text-ink">Current password</label>
+              <PasswordInput id="delete-account-password" autoFocus value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} autoComplete="current-password" maxLength={128} required placeholder="Enter your current password" className="rounded-2xl" />
+            </div>
+            <div>
+              <label htmlFor="delete-account-confirmation" className="mb-1.5 block text-xs font-bold text-ink">Type <span className="text-danger">DELETE</span> to confirm</label>
+              <input id="delete-account-confirmation" value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} autoComplete="off" spellCheck={false} maxLength={6} required placeholder="DELETE" className="h-11 w-full rounded-2xl border border-line bg-surface px-4 text-sm font-semibold text-ink outline-none transition focus:border-danger focus:ring-4 focus:ring-danger/10" />
+            </div>
+            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="ghost" onClick={() => setDeleteDialogOpen(false)} disabled={deletingAccount}>Keep my account</Button>
+              <button type="submit" disabled={deletingAccount || !deletePassword || deleteConfirmation !== "DELETE"} className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-danger px-5 text-sm font-bold text-white transition hover:brightness-95 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45">
+                <Trash2 className="h-4 w-4" />
+                {deletingAccount ? "Deleting account…" : "Permanently delete account"}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    )}
     </>
   );
 }

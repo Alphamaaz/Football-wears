@@ -87,3 +87,14 @@ export async function updateProfile(input: {
     body: input,
   });
 }
+
+export async function deleteAccount(input: {
+  currentPassword: string;
+  confirmation: "DELETE";
+}) {
+  return api<{ message: string; accountDeleted: true }>("/users/me", {
+    method: "DELETE",
+    body: input,
+    skipRefresh: true,
+  });
+}

@@ -444,6 +444,11 @@ body:has(.chat-thread-page) footer {
 .mobile-account-logout { display:flex; width:100%; min-height:4.5rem; align-items:center; gap:.8rem; margin-top:1rem; border:1px solid var(--color-line); border-radius:1.15rem; background:white; padding:.75rem 1rem; color:#9d2020; }
 .mobile-account-logout > span { background:#fff0f0 !important; color:#9d2020 !important; }
 .mobile-account-logout strong { font-size:.95rem; }
+.mobile-account-delete { display:flex; width:100%; align-items:center; gap:.8rem; margin-top:.7rem; border:0; background:transparent; padding:.7rem .4rem; color:#9d2020; text-align:left; }
+.mobile-account-delete > svg { width:1.25rem; height:1.25rem; flex:none; }
+.mobile-account-delete > span { display:flex; min-width:0; flex-direction:column; gap:.1rem; }
+.mobile-account-delete strong { font-size:.9rem; }
+.mobile-account-delete small { color:var(--color-muted); font-size:.72rem; }
 .mobile-account-links { display:flex; justify-content:center; gap:1rem; margin-top:1.7rem; color:var(--color-body); font-size:.75rem; }
 .mobile-account-links span { width:1px; background:var(--color-line); }
 .mobile-profile-edit > header { display:grid; height:4.8rem; grid-template-columns:1fr auto 1fr; align-items:center; }
