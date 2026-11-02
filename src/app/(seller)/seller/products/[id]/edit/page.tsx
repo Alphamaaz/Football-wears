@@ -11,7 +11,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getMyProduct, updateProduct, CATEGORIES, NIGERIAN_STATES } from "@/lib/products";
+import { getMyProduct, updateProduct, NIGERIAN_STATES } from "@/lib/products";
 import { getCategories, DEFAULT_CATEGORIES, type Category } from "@/lib/categories";
 import type { Product } from "@/lib/products";
 import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
@@ -55,12 +55,16 @@ export default function EditProductPage({
           return;
         }
         setProduct(p);
-        const mediaList = p.media?.length
-          ? p.media
-          : (p.images ?? []).map((img) => ({ ...img, type: "image" as const }));
-        const uniqueUrls = Array.from(new Set(mediaList.map((item) => item.url)));
-        setRetainedMediaUrls(uniqueUrls);
-        setRetainedImageUrls(uniqueUrls);
+        // Older listings can contain the same gallery photo in both `media`
+        // and the legacy `images` collection. Keep each URL in one collection
+        // so it is displayed, submitted, and counted exactly once.
+        const mediaUrls = Array.from(new Set((p.media ?? []).map((item) => item.url)));
+        const mediaUrlSet = new Set(mediaUrls);
+        const legacyImageUrls = Array.from(new Set(
+          (p.images ?? []).map((item) => item.url).filter((url) => !mediaUrlSet.has(url)),
+        ));
+        setRetainedMediaUrls(mediaUrls);
+        setRetainedImageUrls(legacyImageUrls);
       })
       .catch((err) => {
         if (err instanceof ApiRequestError && err.status === 403) {
@@ -157,7 +161,9 @@ export default function EditProductPage({
   });
 
   const visibleMedia = uniqueGalleryItems.filter((item) =>
-    retainedMediaUrls.includes(item.url)
+    item.source === "media"
+      ? retainedMediaUrls.includes(item.url)
+      : retainedImageUrls.includes(item.url)
   );
   const existingMediaCount = visibleMedia.length;
   const remainingMediaSlots = Math.max(0, 7 - existingMediaCount);
@@ -227,6 +233,7 @@ export default function EditProductPage({
                   setError(`You can add only ${remainingMediaSlots} more media file${remainingMediaSlots === 1 ? "" : "s"}. The cover counts toward the maximum of 8.`);
                   return;
                 }
+                setError(null);
                 setNewMediaCount(files.length);
               }}
               className="block w-full text-sm text-body file:mr-3 file:rounded-full file:border-0 file:bg-sunken file:px-4 file:py-2 file:text-sm file:font-semibold file:text-body"
@@ -248,6 +255,7 @@ export default function EditProductPage({
                       onClick={() => {
                         setRetainedMediaUrls((urls) => urls.filter((url) => url !== item.url));
                         setRetainedImageUrls((urls) => urls.filter((url) => url !== item.url));
+                        setError(null);
                       }}
                       className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-black/75 text-white shadow-sm transition hover:bg-danger focus:outline-none focus:ring-2 focus:ring-white"
                     >
@@ -261,8 +269,8 @@ export default function EditProductPage({
               </div>
             )}
             <p className="mt-2 text-xs text-muted">Removed media is deleted from the listing when you save changes.</p>
-            <p className="text-xs text-muted mt-1">
-              Maximum 8 files including the cover. {remainingMediaSlots} gallery slot{remainingMediaSlots === 1 ? "" : "s"} remaining{newMediaCount ? ` (${newMediaCount} selected)` : ""}. Each file can be up to 15 MB; MP4 videos must be 20 seconds or shorter.
+            <p className="text-xs text-muted mt-1" aria-live="polite">
+              {existingMediaCount + 1} of 8 media slots used, including the cover. {Math.max(0, remainingMediaSlots - newMediaCount)} gallery slot{remainingMediaSlots - newMediaCount === 1 ? "" : "s"} remaining{newMediaCount ? ` after adding ${newMediaCount} selected` : ""}. Each file can be up to 15 MB; MP4 videos must be 20 seconds or shorter.
             </p>
           </div>
         </section>
