@@ -189,7 +189,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 {copiedId ? "Copied" : "Copy"}
               </button>
             </div>
-            <p className="text-xs text-muted mt-2">
+            <p className="text-xs text-muted mt-2" suppressHydrationWarning>
               Created on {new Date(order.createdAt).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" })} at{" "}
               {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </p>

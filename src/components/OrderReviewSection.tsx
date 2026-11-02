@@ -87,7 +87,8 @@ export function OrderReviewSection({ order }: { order: Order }) {
   const [data, setData] = useState<ReviewEligibility | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   // Ratings state (defaults to 0 so user taps their desired rating)
@@ -99,12 +100,12 @@ export function OrderReviewSection({ order }: { order: Order }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setLoadError(null);
     try {
       const eligibility = await getReviewEligibility(order._id);
       setData(eligibility);
     } catch (err) {
-      setError(
+      setLoadError(
         err instanceof ApiRequestError
           ? err.message
           : "Could not load review options. Please try again."
@@ -125,18 +126,18 @@ export function OrderReviewSection({ order }: { order: Order }) {
     const chosenRating = itemRatings[productId] || formRating;
 
     if (!chosenRating) {
-      setError("Please select a star rating for the item.");
+      setActionError("Please select a star rating for the item.");
       return;
     }
 
     const text = (itemText[productId] ?? "").trim();
     if (text.length < 10) {
-      setError("Item review must contain at least 10 characters.");
+      setActionError("Item review must contain at least 10 characters.");
       return;
     }
 
     setBusy(productId);
-    setError(null);
+    setActionError(null);
     setNotice(null);
     try {
       const result = await createItemReview(
@@ -148,7 +149,7 @@ export function OrderReviewSection({ order }: { order: Order }) {
       setNotice(result.message);
       await load();
     } catch (err) {
-      setError(
+      setActionError(
         err instanceof ApiRequestError
           ? err.message
           : "Could not publish the item review. Please try again."
@@ -165,17 +166,17 @@ export function OrderReviewSection({ order }: { order: Order }) {
     const chosenRating = sellerRating || formRating;
 
     if (!chosenRating) {
-      setError("Please select a star rating for the seller.");
+      setActionError("Please select a star rating for the seller.");
       return;
     }
 
     if (selectedTags.length === 0) {
-      setError("Please choose at least 1 seller description.");
+      setActionError("Please choose at least 1 seller description.");
       return;
     }
 
     setBusy("seller");
-    setError(null);
+    setActionError(null);
     setNotice(null);
     try {
       const result = await createSellerReview(
@@ -187,7 +188,7 @@ export function OrderReviewSection({ order }: { order: Order }) {
       setNotice(result.message);
       await load();
     } catch (err) {
-      setError(
+      setActionError(
         err instanceof ApiRequestError
           ? err.message
           : "Could not publish the seller rating. Please try again."
@@ -242,10 +243,10 @@ export function OrderReviewSection({ order }: { order: Order }) {
         </div>
       )}
 
-      {/* Error state */}
-      {!loading && error && (
+      {/* Load Error state */}
+      {!loading && loadError && !data && (
         <div className="space-y-4">
-          <Alert kind="error">{error}</Alert>
+          <Alert kind="error">{loadError}</Alert>
           <Button
             type="button"
             variant="outline"
@@ -259,15 +260,16 @@ export function OrderReviewSection({ order }: { order: Order }) {
       )}
 
       {/* Not Eligible state */}
-      {!loading && !error && data && !data.eligible && (
+      {!loading && !loadError && data && !data.eligible && (
         <div className="rounded-2xl border border-line bg-sunken/50 p-5 text-sm text-body text-center">
           Reviews become available once the deal has been officially confirmed as completed.
         </div>
       )}
 
       {/* Eligible Form / Reviews Content */}
-      {!loading && !error && data?.eligible && (
+      {!loading && data?.eligible && (
         <div className="space-y-6">
+          {actionError && <Alert kind="error">{actionError}</Alert>}
           {notice && <Alert kind="success">{notice}</Alert>}
 
           {/* Celebratory Completed Banner when both are already completed */}
