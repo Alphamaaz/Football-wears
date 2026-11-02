@@ -153,7 +153,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const BadgeIcon = badge.icon;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Top Breadcrumb Navigation */}
       <div className="flex items-center justify-between">
         <Link
@@ -255,7 +255,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       </section>
 
       {/* Main Grid: Items & Handover Confirmation */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
         {/* Left Column: Items & Totals (2 cols) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Purchased Items Card */}
@@ -322,9 +322,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
           </section>
-
-          {/* Completed buyers can review the item and seller separately. */}
-          {isBuyer && isCompleted && <OrderReviewSection order={order} />}
         </div>
 
         {/* Right Column: Handover Confirmation & Safety (1 col) */}
@@ -381,6 +378,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </section>
         </div>
       </div>
+
+      {/* Completed buyers can review the item and seller separately. */}
+      {isBuyer && isCompleted && (
+        <div className="pt-2">
+          <OrderReviewSection order={order} />
+        </div>
+      )}
     </div>
   );
 }
