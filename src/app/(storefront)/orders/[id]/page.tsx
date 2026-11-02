@@ -11,7 +11,6 @@ import {
   Handshake,
   MessageCircle,
   Package,
-  ShieldAlert,
   Store,
   XCircle,
 } from "lucide-react";
@@ -255,59 +254,61 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       </section>
 
       {/* Main Grid: Items & Handover Confirmation */}
-      <div className="grid lg:grid-cols-3 gap-6 items-start">
+      <div className="grid lg:grid-cols-3 gap-6 items-stretch">
         {/* Left Column: Items & Totals (2 cols) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2">
           {/* Purchased Items Card */}
-          <section className="rounded-3xl border border-line bg-surface p-6 shadow-soft">
-            <h2 className="text-base font-bold text-ink mb-4 flex items-center gap-2">
-              <Package className="h-4.5 w-4.5 text-primary" />
-              Listing Details ({order.items.length})
-            </h2>
+          <section className="h-full rounded-3xl border border-line bg-surface p-6 shadow-soft flex flex-col justify-between">
+            <div>
+              <h2 className="text-base font-bold text-ink mb-4 flex items-center gap-2">
+                <Package className="h-4.5 w-4.5 text-primary" />
+                Listing Details ({order.items.length})
+              </h2>
 
-            <div className="divide-y divide-line/60">
-              {order.items.map((item, i) => (
-                <div key={i} className="py-4 first:pt-0 last:pb-0 flex items-center gap-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={assetUrl(item.coverImage.url)}
-                    alt={item.title}
-                    className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl border border-line object-cover shrink-0 shadow-xs"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/products/${item.product}`}
-                      className="font-bold text-sm sm:text-base text-ink hover:text-primary transition-colors truncate block"
-                    >
-                      {item.title}
-                    </Link>
-                    <p className="text-xs text-muted mt-0.5 flex items-center gap-1.5">
-                      <Store className="h-3 w-3" />
-                      <span>{item.storeName}</span>
-                      <span>·</span>
-                      <span>Qty: {item.quantity}</span>
-                    </p>
-                    {item.variantSelections?.length > 0 && (
-                      <p className="text-[11px] text-muted mt-1">
-                        {item.variantSelections.map((v) => `${v.name}: ${v.value}`).join(", ")}
+              <div className="divide-y divide-line/60">
+                {order.items.map((item, i) => (
+                  <div key={i} className="py-4 first:pt-0 last:pb-0 flex items-center gap-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={assetUrl(item.coverImage.url)}
+                      alt={item.title}
+                      className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl border border-line object-cover shrink-0 shadow-xs"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/products/${item.product}`}
+                        className="font-bold text-sm sm:text-base text-ink hover:text-primary transition-colors truncate block"
+                      >
+                        {item.title}
+                      </Link>
+                      <p className="text-xs text-muted mt-0.5 flex items-center gap-1.5">
+                        <Store className="h-3 w-3" />
+                        <span>{item.storeName}</span>
+                        <span>·</span>
+                        <span>Qty: {item.quantity}</span>
                       </p>
-                    )}
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-sm font-extrabold text-primary">
-                        ₦{item.finalPrice.toLocaleString()}
-                      </span>
-                      {item.finalPrice < item.originalPrice && (
-                        <span className="text-xs text-muted line-through">
-                          ₦{item.originalPrice.toLocaleString()}
-                        </span>
+                      {item.variantSelections?.length > 0 && (
+                        <p className="text-[11px] text-muted mt-1">
+                          {item.variantSelections.map((v) => `${v.name}: ${v.value}`).join(", ")}
+                        </p>
                       )}
+                      <div className="mt-1 flex items-baseline gap-2">
+                        <span className="text-sm font-extrabold text-primary">
+                          ₦{item.finalPrice.toLocaleString()}
+                        </span>
+                        {item.finalPrice < item.originalPrice && (
+                          <span className="text-xs text-muted line-through">
+                            ₦{item.originalPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    <span className="text-base font-extrabold text-ink shrink-0">
+                      ₦{item.lineTotal.toLocaleString()}
+                    </span>
                   </div>
-                  <span className="text-base font-extrabold text-ink shrink-0">
-                    ₦{item.lineTotal.toLocaleString()}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* Financial Summary */}
@@ -324,57 +325,55 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </section>
         </div>
 
-        {/* Right Column: Handover Confirmation & Safety (1 col) */}
-        <div className="space-y-6">
-          {/* Handover & Completion Action Card */}
-          <section className="rounded-3xl border border-line bg-surface p-6 shadow-soft space-y-4">
-            <h3 className="text-base font-bold text-ink">
-              {isCompleted ? "Deal Status" : "Handover Confirmation"}
-            </h3>
+        {/* Right Column: Handover Confirmation / Deal Status (1 col) */}
+        <div className="lg:col-span-1">
+          <section className="h-full rounded-3xl border border-line bg-surface p-6 shadow-soft flex flex-col justify-between space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-ink mb-4 flex items-center gap-2">
+                <CheckCircle2 className="h-4.5 w-4.5 text-success" />
+                <span>{isCompleted ? "Deal Status" : "Handover Confirmation"}</span>
+              </h3>
 
-            {isCompleted ? (
-              <div className="rounded-2xl bg-success-soft/60 border border-success/30 p-4 text-center space-y-2">
-                <CheckCircle2 className="h-10 w-10 text-success mx-auto" />
-                <h4 className="font-black text-sm text-ink">Deal Completed!</h4>
-                <p className="text-xs text-body leading-relaxed">
-                  Both parties have confirmed successful handover and payment.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-xs text-body leading-relaxed">
-                  {isBuyer
-                    ? "Once you have met the seller, inspected the item, and confirmed everything is in good condition, click below to mark the deal as completed."
-                    : "Once you have handed over the item and verified payment from the buyer, click below to mark this deal as completed."}
-                </p>
+              {isCompleted ? (
+                <div className="rounded-2xl bg-success-soft/50 border border-success/30 p-5 text-center space-y-3">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-success text-white shadow-xs">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-sm text-ink">Deal Completed!</h4>
+                    <p className="text-xs text-body leading-relaxed mt-1">
+                      Both parties have confirmed successful handover and payment.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-xs text-body leading-relaxed">
+                    {isBuyer
+                      ? "Once you have met the seller, inspected the item, and confirmed everything is in good condition, click below to mark the deal as completed."
+                      : "Once you have handed over the item and verified payment from the buyer, click below to mark this deal as completed."}
+                  </p>
 
-                <Button
-                  size="lg"
-                  full
-                  loading={busy === "complete"}
-                  disabled={busy !== null}
-                  onClick={handleConfirmComplete}
-                  className="h-auto min-h-12 whitespace-normal rounded-2xl px-4 py-3 text-center text-sm font-bold leading-snug bg-[#00b53f] hover:bg-[#009e37] text-white shadow-soft sm:text-base"
-                >
-                  <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
-                  Confirm handover complete
-                </Button>
-              </div>
-            )}
-          </section>
-
-          {/* Safety Guidelines Card */}
-          <section className="rounded-3xl border border-warning/40 bg-warning/10 p-5 space-y-3">
-            <div className="flex items-center gap-2 text-ink font-bold text-xs">
-              <ShieldAlert className="h-4.5 w-4.5 text-warning shrink-0" />
-              <span>P2P Marketplace Safety Tips</span>
+                  <Button
+                    size="lg"
+                    full
+                    loading={busy === "complete"}
+                    disabled={busy !== null}
+                    onClick={handleConfirmComplete}
+                    className="h-auto min-h-12 whitespace-normal rounded-2xl px-4 py-3 text-center text-sm font-bold leading-snug bg-[#00b53f] hover:bg-[#009e37] text-white shadow-soft sm:text-base"
+                  >
+                    <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
+                    Confirm handover complete
+                  </Button>
+                </div>
+              )}
             </div>
-            <ul className="text-[11px] text-body space-y-2 list-disc list-inside leading-relaxed">
-              <li>Always meet in a busy, well-lit public place (e.g. shopping mall or bank).</li>
-              <li>Never send payments in advance before inspecting the item.</li>
-              <li>Test all electronics, phones, and devices thoroughly before paying.</li>
-              <li>Keep all communication and waybill slips logged in the Transaction Chat.</li>
-            </ul>
+
+            {/* Bottom fulfillment indicator so it cleanly aligns with Financial Summary */}
+            <div className="pt-5 border-t border-line text-xs flex items-center justify-between text-body">
+              <span>Handover method</span>
+              <span className="font-bold text-ink">In-person Inspection</span>
+            </div>
           </section>
         </div>
       </div>
