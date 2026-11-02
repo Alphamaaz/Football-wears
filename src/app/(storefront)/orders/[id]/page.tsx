@@ -323,12 +323,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           </section>
 
-          {/* Review Section (Shows when deal is completed) */}
-          {isCompleted && (
-            <section className="rounded-3xl border border-line bg-surface p-6 shadow-soft">
-              <OrderReviewSection order={order} />
-            </section>
-          )}
+          {/* Completed buyers can review the item and seller separately. */}
+          {isBuyer && isCompleted && <OrderReviewSection order={order} />}
         </div>
 
         {/* Right Column: Handover Confirmation & Safety (1 col) */}
