@@ -19,6 +19,7 @@ import {
   Handshake,
   HelpCircle,
   Inbox,
+  KeyRound,
   LifeBuoy,
   MapPin,
   MessageSquare,
@@ -35,6 +36,7 @@ import {
   RefreshCw,
   Search,
   Server,
+  Settings,
   Shield,
   ShieldCheck,
   Shirt,
@@ -77,6 +79,7 @@ import type { User } from "@/lib/types";
 import { Logo } from "@/components/Logo";
 import { Button, Input } from "@/components/ui";
 import { useAppDialog } from "@/components/AppDialogProvider";
+import { AdminPasswordManager } from "@/components/AdminPasswordManager";
 
 const CATEGORY_ICON_PRESETS = [
   { name: "Smartphone", label: "Phone", icon: Smartphone },
@@ -119,6 +122,7 @@ export default function AdminDashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [analytics, setAnalytics] = useState<AdminAnalyticsData | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "requests" | "support" | "users" | "categories" | "activity" | "settings">("overview");
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   // Operational request sub-filter
   const [requestFilter, setRequestFilter] = useState<"all" | "sellers" | "completions" | "payouts">("sellers");
@@ -637,6 +641,17 @@ export default function AdminDashboardPage() {
               <span className="hidden sm:inline">Refresh</span>
             </Button>
 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPasswordModalOpen(true)}
+              className="rounded-xl text-xs font-semibold gap-1.5"
+              title="Change or reset superadmin password"
+            >
+              <KeyRound className="h-3.5 w-3.5 text-primary" />
+              <span className="hidden sm:inline">Password</span>
+            </Button>
+
             <Link href="/">
               <Button variant="ghost" size="sm" className="rounded-xl text-xs font-semibold">
                 Storefront <ExternalLink className="h-3.5 w-3.5 ml-1" />
@@ -883,6 +898,7 @@ export default function AdminDashboardPage() {
             { id: "users", label: "Users & Stores", icon: Users },
             { id: "categories", label: "Categories", icon: Tag },
             { id: "activity", label: "Activity", icon: Activity },
+            { id: "settings", label: "Security & Settings", icon: Settings },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1683,10 +1699,15 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 6: PLATFORM CONTROLS & DATA EXPORT                                    */}
+        {/* TAB 6: SECURITY, PLATFORM CONTROLS & DATA EXPORT                           */}
         {/* ========================================================================= */}
         {activeTab === "settings" && (
           <div className="space-y-6">
+            {/* Superadmin Credentials & Security Management */}
+            <section className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft">
+              <AdminPasswordManager adminEmail={currentUser?.email} />
+            </section>
+
             <section className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-soft space-y-5">
               <h3 className="text-base font-bold text-ink flex items-center gap-2">
                 <Download className="h-5 w-5 text-primary" />
@@ -2443,6 +2464,26 @@ export default function AdminDashboardPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Superadmin Password Modal */}
+      {passwordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-xl rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-lifted my-8 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setPasswordModalOpen(false)}
+              className="absolute right-5 top-5 rounded-xl p-1.5 text-muted hover:bg-sunken hover:text-ink transition-colors"
+              aria-label="Close dialog"
+            >
+              <XCircle className="h-5 w-5" />
+            </button>
+            <AdminPasswordManager
+              adminEmail={currentUser?.email}
+              inModal={true}
+              onClose={() => setPasswordModalOpen(false)}
+            />
           </div>
         </div>
       )}
