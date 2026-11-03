@@ -19,7 +19,7 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { listProductReviewsServer, listSellerReviewsServer, type Review } from "@/lib/reviews";
 import { listProductQuestionsServer } from "@/lib/questions";
 import { PromotionActions } from "@/components/PromotionActions";
-import { ProductQuestions } from "@/components/ProductQuestions";
+import { ProductFeedbackAndQA } from "@/components/ProductFeedbackAndQA";
 import { ProductCard } from "@/components/ProductCard";
 import { MobileProductDetail } from "@/components/MobileProductDetail";
 
@@ -286,101 +286,20 @@ export default async function ProductDetailPage({
       </div>
 
       {/* ================================================================= */}
-      {/* FULL WIDTH: Community Questions & Answers (Visible to All)        */}
+      {/* UNIFIED: Customer Feedback & Community Q&A                        */}
       {/* ================================================================= */}
-      <div className="grid items-stretch gap-6 border-t border-line pt-8 lg:grid-cols-2">
-      <section>
-        <ProductQuestions
+      <div className="border-t border-line pt-8">
+        <ProductFeedbackAndQA
           productId={product._id}
+          productTitle={product.title}
           sellerId={product.seller}
           storeName={product.storeName}
+          sellerFullName={product.sellerFullName}
+          allReviews={allReviews}
+          effectiveRatingAverage={effectiveRatingAverage}
+          effectiveRatingCount={effectiveRatingCount}
           initialQuestions={questionResult.questions}
         />
-      </section>
-
-      {/* ================================================================= */}
-      {/* FULL WIDTH: Seller Reputation & Buyer Feedback                    */}
-      {/* ================================================================= */}
-      <section className="product-reputation rounded-3xl border border-line bg-surface p-6 shadow-soft space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
-          <div>
-            <div className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-primary" />
-              <h2 className="text-base sm:text-lg font-bold text-ink">
-                Seller Reputation &amp; Buyer Feedback
-              </h2>
-            </div>
-            <p className="text-xs text-muted mt-1">
-              Verified ratings and reviews for <span className="font-semibold text-ink">{product.storeName || product.sellerFullName || "this seller"}</span> from completed PriceAm deals.
-            </p>
-          </div>
-
-          {effectiveRatingCount > 0 ? (
-            <div className="flex items-center gap-2 bg-sunken px-4 py-2 rounded-2xl border border-line self-start sm:self-auto">
-              <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-accent text-accent" />
-              <span className="text-base font-extrabold text-ink">
-                {effectiveRatingAverage.toFixed(1)}
-              </span>
-              <span className="text-xs text-muted font-medium">
-                / 5.0 ({effectiveRatingCount} {effectiveRatingCount === 1 ? "review" : "reviews"})
-              </span>
-            </div>
-          ) : (
-            <span className="text-xs font-semibold text-muted self-start sm:self-auto">No completed-deal reviews yet</span>
-          )}
-        </div>
-
-        {allReviews.length > 0 ? (
-          <div className="grid md:grid-cols-2 gap-4">
-            {allReviews.map((review) => {
-              const reviewerName =
-                typeof review.buyer === "string"
-                  ? "Verified Buyer"
-                  : review.buyer?.fullName || "Verified Buyer";
-              return (
-                <article key={review._id} className="rounded-2xl bg-sunken/70 border border-line/60 p-4 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-ink">{reviewerName}</span>
-                    <span className="flex items-center gap-1 text-xs font-extrabold text-accent bg-accent/10 px-2 py-0.5 rounded-md">
-                      <Star className="h-3 w-3 fill-accent" />
-                      {review.rating}/5
-                    </span>
-                  </div>
-
-                  {review.tags && review.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {review.tags.map((tag) => (
-                        <span key={tag} className="rounded-md bg-surface px-2 py-0.5 text-[10px] font-medium capitalize text-muted border border-line">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {review.text && (
-                    <p className="text-xs text-body leading-relaxed">{review.text}</p>
-                  )}
-
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted pt-1">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                    <span>Verified Deal · {new Date(review.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-line bg-sunken/30 p-6 sm:p-8 text-center space-y-2.5">
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <h3 className="text-sm font-bold text-ink">New Seller on PriceAm</h3>
-            <p className="text-xs text-muted max-w-md mx-auto leading-relaxed">
-              <span className="font-medium text-ink">{product.storeName || product.sellerFullName || "This seller"}</span>{" "}hasn&apos;t received customer ratings yet. Meet in a public place and inspect the item before paying the seller directly.
-            </p>
-          </div>
-        )}
-      </section>
       </div>
 
       {/* ================================================================= */}

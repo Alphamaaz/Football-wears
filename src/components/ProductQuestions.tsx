@@ -20,6 +20,8 @@ interface ProductQuestionsProps {
   sellerId: string;
   storeName: string;
   initialQuestions?: ProductQuestion[];
+  embedded?: boolean;
+  onQuestionsCountChange?: (count: number) => void;
 }
 
 export function ProductQuestions({
@@ -27,6 +29,8 @@ export function ProductQuestions({
   sellerId,
   storeName,
   initialQuestions = [],
+  embedded = false,
+  onQuestionsCountChange,
 }: ProductQuestionsProps) {
   const [questions, setQuestions] = useState<ProductQuestion[]>(initialQuestions);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -57,7 +61,11 @@ export function ProductQuestions({
 
     try {
       const res = await askProductQuestion(productId, questionText.trim());
-      setQuestions((prev) => [res.question, ...prev]);
+      setQuestions((prev) => {
+        const next = [res.question, ...prev];
+        onQuestionsCountChange?.(next.length);
+        return next;
+      });
       setQuestionText("");
       setSuccess("Your question has been posted publicly! The seller will be notified.");
     } catch (err) {
@@ -87,35 +95,37 @@ export function ProductQuestions({
     }
   }
 
-  return (
-    <section className="product-questions rounded-3xl border border-line bg-surface p-6 shadow-soft">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <MessageCircleQuestion className="h-4.5 w-4.5" />
-            </span>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-ink tracking-tight">
-              Questions & Answers
-            </h2>
+  const content = (
+    <>
+      {/* Header (only show full header when NOT embedded) */}
+      {!embedded && (
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                <MessageCircleQuestion className="h-4.5 w-4.5" />
+              </span>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-ink tracking-tight">
+                Questions & Answers
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-muted mt-1">
+              Public community Q&A for this item. All visitors can see questions and seller answers.
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-muted mt-1">
-            Public community Q&A for this item. All visitors can see questions and seller answers.
-          </p>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-sunken px-3.5 py-1 text-xs font-bold text-muted border border-line">
+            <HelpCircle className="h-3.5 w-3.5 text-primary" />
+            {questions.length} Question{questions.length === 1 ? "" : "s"}
+          </span>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-sunken px-3.5 py-1 text-xs font-bold text-muted border border-line">
-          <HelpCircle className="h-3.5 w-3.5 text-primary" />
-          {questions.length} Question{questions.length === 1 ? "" : "s"}
-        </span>
-      </div>
+      )}
 
       {error && <div className="mt-4"><Alert kind="error">{error}</Alert></div>}
       {success && <div className="mt-4"><Alert kind="success">{success}</Alert></div>}
 
       {/* Ask Question Form (For buyers / visitors) */}
       {!isSeller && (
-        <div className="mt-6 rounded-2xl bg-sunken/60 border border-line p-5">
+        <div className="rounded-2xl bg-sunken/60 border border-line p-5">
           <h3 className="text-sm font-bold text-ink flex items-center gap-2 mb-1.5">
             <MessageSquare className="h-4 w-4 text-primary" />
             Have a question about this item?
@@ -160,9 +170,9 @@ export function ProductQuestions({
       )}
 
       {/* Question List */}
-      <div className="mt-6 space-y-4">
+      <div className="space-y-4">
         {questions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line p-8 text-center">
+          <div className="rounded-2xl border border-dashed border-line p-8 text-center bg-sunken/30">
             <MessageCircleQuestion className="h-8 w-8 text-muted mx-auto mb-2 opacity-50" />
             <p className="text-sm font-semibold text-ink">No questions asked yet</p>
             <p className="text-xs text-muted mt-1">
@@ -274,6 +284,16 @@ export function ProductQuestions({
           ))
         )}
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="product-questions space-y-6">{content}</div>;
+  }
+
+  return (
+    <section className="product-questions rounded-3xl border border-line bg-surface p-6 shadow-soft space-y-6">
+      {content}
     </section>
   );
 }
