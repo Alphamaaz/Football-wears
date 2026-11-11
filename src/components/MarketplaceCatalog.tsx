@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import {
+  Award,
   Baby,
   BookOpen,
   Check,
@@ -9,6 +10,7 @@ import {
   Dumbbell,
   Filter,
   Gamepad2,
+  Globe,
   Handshake,
   Headphones,
   Home as HomeIcon,
@@ -26,41 +28,61 @@ import {
   Smartphone,
   Sparkles,
   Tag,
+  Trophy,
+  User,
   Wrench,
   X,
+  Zap,
 } from "lucide-react";
 import { listProducts, type Product, type ProductSort } from "@/lib/products";
 import { getCategories, DEFAULT_CATEGORIES, type Category } from "@/lib/categories";
+import { FOOTBALL_PLAYERS, FOOTBALL_CLUBS, FOOTBALL_COUNTRIES } from "@/lib/football-data";
+import { UnisportPlayerCarousel } from "@/components/UnisportPlayerCarousel";
+import { UnisportClubBar } from "@/components/UnisportClubBar";
 import { ProductCard } from "@/components/ProductCard";
 import { Button, Input } from "@/components/ui";
 
 const CATEGORY_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Shirt,
+  Trophy,
+  Sparkles,
+  Zap,
+  Dumbbell,
+  ShieldCheck,
+  Package,
+  Tag,
   Smartphone,
   Laptop,
   Baby,
-  Sparkles,
   Wrench,
   Headphones,
-  Shirt,
   Home: HomeIcon,
   HomeIcon,
   Gamepad2,
   BookOpen,
-  Package,
 };
 
 const MOBILE_CATEGORY_ITEMS = [
-  { id: "electronics", label: "Electronics", icon: Headphones, color: "bg-[#ffe7a6]" },
-  { id: "fashion", label: "Fashion", icon: Shirt, color: "bg-[#ffdccc]" },
-  { id: "home", label: "Home", icon: HomeIcon, color: "bg-[#d7e8ff]" },
-  { id: "gaming", label: "Gaming", icon: Gamepad2, color: "bg-[#e2e4e9]" },
-  { id: "books", label: "Books", icon: BookOpen, color: "bg-[#ffedb4]" },
-  { id: "kids-toys", label: "Kids & Toys", icon: Baby, color: "bg-[#ffe0a8]" },
-  { id: "equipment-tools", label: "Tools", icon: Wrench, color: "bg-[#ded7d3]" },
-  { id: "mobile-phones", label: "Phones & Tablets", icon: Smartphone, color: "bg-[#dff4e8]" },
-  { id: "beauty-skincare", label: "Beauty", icon: Sparkles, color: "bg-[#f8deea]" },
-  { id: "sports", label: "Sports", icon: Dumbbell, color: "bg-[#dff2f4]" },
+  { id: "club-jerseys", label: "Club Kits", icon: Shirt, color: "bg-[#ffe7a6]" },
+  { id: "national-teams", label: "National Kits", icon: Trophy, color: "bg-[#ffdccc]" },
+  { id: "retro-classics", label: "Retro Vault", icon: Sparkles, color: "bg-[#ffedb4]" },
+  { id: "football-boots", label: "Boots & Cleats", icon: Zap, color: "bg-[#d7e8ff]" },
+  { id: "football-socks", label: "Football Socks", icon: Tag, color: "bg-[#ffe3ec]" },
+  { id: "training-wear", label: "Tracksuits", icon: Dumbbell, color: "bg-[#dff4e8]" },
+  { id: "goalkeeper", label: "Goalkeeper", icon: ShieldCheck, color: "bg-[#f8deea]" },
+  { id: "match-balls", label: "Match Balls", icon: Package, color: "bg-[#e2e4e9]" },
+  { id: "accessories", label: "Accessories", icon: Tag, color: "bg-[#dff2f4]" },
 ] as const;
+
+const FOOTBALL_EDITIONS = [
+  "Player Issue (Match)",
+  "Stadium Fan Version",
+  "Retro Legend Archive",
+  "Pro FG / AG Match",
+  "Anti-Slip Grip Edition",
+];
+
+const FOOTBALL_BRANDS = ["Nike", "Adidas", "Puma"];
 
 const NIGERIAN_STATES = [
   "All Nigeria",
@@ -81,11 +103,10 @@ const NIGERIAN_STATES = [
 
 const PRICE_PRESETS = [
   { label: "Any Price", min: undefined, max: undefined },
-  { label: "Under ₦20,000", min: undefined, max: 20000 },
-  { label: "₦20,000 - ₦50,000", min: 20000, max: 50000 },
-  { label: "₦50,000 - ₦150,000", min: 50000, max: 150000 },
-  { label: "₦150,000 - ₦500,000", min: 150000, max: 500000 },
-  { label: "₦500,000+", min: 500000, max: undefined },
+  { label: "Under PKR 30,000", min: undefined, max: 30000 },
+  { label: "PKR 30,000 - PKR 60,000", min: 30000, max: 60000 },
+  { label: "PKR 60,000 - PKR 100,000", min: 60000, max: 100000 },
+  { label: "PKR 100,000+", min: 100000, max: undefined },
 ];
 
 const PRODUCTS_PER_PAGE = 18;
@@ -95,6 +116,12 @@ interface MarketplaceCatalogProps {
   initialTotal?: number;
   initialSearch?: string;
   initialCategory?: string;
+  initialClub?: string;
+  initialCountry?: string;
+  initialPlayer?: string;
+  initialEdition?: string;
+  initialBrand?: string;
+  showSpotlightSections?: boolean;
 }
 
 export function MarketplaceCatalog({
@@ -102,6 +129,12 @@ export function MarketplaceCatalog({
   initialTotal = 0,
   initialSearch = "",
   initialCategory = "",
+  initialClub = "",
+  initialCountry = "",
+  initialPlayer = "",
+  initialEdition = "",
+  initialBrand = "",
+  showSpotlightSections = false,
 }: MarketplaceCatalogProps) {
   const [, startTransition] = useTransition();
 
@@ -132,6 +165,11 @@ export function MarketplaceCatalog({
   // Filters State
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedClub, setSelectedClub] = useState(initialClub);
+  const [selectedCountry, setSelectedCountry] = useState(initialCountry);
+  const [selectedPlayer, setSelectedPlayer] = useState(initialPlayer);
+  const [selectedEdition, setSelectedEdition] = useState(initialEdition);
+  const [selectedBrand, setSelectedBrand] = useState(initialBrand);
   const [selectedState, setSelectedState] = useState("All Nigeria");
   const [condition, setCondition] = useState<"" | "new" | "used">("");
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -197,6 +235,11 @@ export function MarketplaceCatalog({
         limit: PRODUCTS_PER_PAGE,
         search: search.trim() || undefined,
         category: selectedCategory || undefined,
+        club: selectedClub || undefined,
+        country: selectedCountry || undefined,
+        player: selectedPlayer || undefined,
+        edition: selectedEdition || undefined,
+        brand: selectedBrand || undefined,
         condition: condition || undefined,
         inStock: inStockOnly || undefined,
         state: selectedState !== "All Nigeria" ? selectedState : undefined,
@@ -221,6 +264,11 @@ export function MarketplaceCatalog({
   }, [
     search,
     selectedCategory,
+    selectedClub,
+    selectedCountry,
+    selectedPlayer,
+    selectedEdition,
+    selectedBrand,
     condition,
     inStockOnly,
     selectedState,
@@ -248,6 +296,11 @@ export function MarketplaceCatalog({
         limit: PRODUCTS_PER_PAGE,
         search: search.trim() || undefined,
         category: selectedCategory || undefined,
+        club: selectedClub || undefined,
+        country: selectedCountry || undefined,
+        player: selectedPlayer || undefined,
+        edition: selectedEdition || undefined,
+        brand: selectedBrand || undefined,
         condition: condition || undefined,
         inStock: inStockOnly || undefined,
         state: selectedState !== "All Nigeria" ? selectedState : undefined,
@@ -277,6 +330,11 @@ export function MarketplaceCatalog({
     totalPages,
     search,
     selectedCategory,
+    selectedClub,
+    selectedCountry,
+    selectedPlayer,
+    selectedEdition,
+    selectedBrand,
     condition,
     inStockOnly,
     selectedState,
@@ -311,6 +369,11 @@ export function MarketplaceCatalog({
   function resetAllFilters() {
     setSearch("");
     setSelectedCategory("");
+    setSelectedClub("");
+    setSelectedCountry("");
+    setSelectedPlayer("");
+    setSelectedEdition("");
+    setSelectedBrand("");
     setSelectedState("All Nigeria");
     setCondition("");
     setInStockOnly(false);
@@ -327,6 +390,11 @@ export function MarketplaceCatalog({
   // Count active filter tags
   const activeFiltersCount =
     (selectedCategory ? 1 : 0) +
+    (selectedClub ? 1 : 0) +
+    (selectedCountry ? 1 : 0) +
+    (selectedPlayer ? 1 : 0) +
+    (selectedEdition ? 1 : 0) +
+    (selectedBrand ? 1 : 0) +
     (selectedState !== "All Nigeria" ? 1 : 0) +
     (condition ? 1 : 0) +
     (appliedMin !== undefined || appliedMax !== undefined ? 1 : 0) +
@@ -336,7 +404,28 @@ export function MarketplaceCatalog({
     (search ? 1 : 0);
 
   return (
-    <div className="space-y-5 sm:space-y-3.5" id="catalog-section">
+    <div className="space-y-5 sm:space-y-6" id="catalog-section">
+      {/* Optional Unisport Spotlights (Players & Clubs Carousels) */}
+      {showSpotlightSections && (
+        <div className="space-y-6 rounded-3xl border border-line bg-surface/70 p-4 sm:p-6 shadow-xs">
+          <UnisportPlayerCarousel
+            selectedPlayer={selectedPlayer}
+            onSelectPlayer={(p) => {
+              setSelectedPlayer(p);
+            }}
+          />
+          <UnisportClubBar
+            selectedClub={selectedClub}
+            selectedCountry={selectedCountry}
+            onSelectClub={(c) => {
+              setSelectedClub(c);
+            }}
+            onSelectCountry={(cntry) => {
+              setSelectedCountry(cntry);
+            }}
+          />
+        </div>
+      )}
       <div className="space-y-7 sm:hidden">
         <div className="relative">
           <Search className="pointer-events-none absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-muted" strokeWidth={1.8} />
@@ -344,7 +433,7 @@ export function MarketplaceCatalog({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search for electronics, fashion..."
+            placeholder="Search kits, boots, retro jerseys (e.g. Madrid, Arsenal, Messi)..."
             className="h-[58px] w-full rounded-full border border-line bg-surface pl-14 pr-20 text-base text-ink shadow-soft outline-none placeholder:text-muted/70 focus:border-primary"
           />
           <button
@@ -547,12 +636,12 @@ export function MarketplaceCatalog({
         {/* =================================================================== */}
         {/* LEFT COLUMN: FILTER SIDEBAR (DESKTOP)                               */}
         {/* =================================================================== */}
-        <aside className="hidden lg:block sticky top-20 rounded-2xl border border-line bg-surface p-4 sm:p-5 shadow-xs space-y-4">
+        <aside className="hidden lg:block sticky top-20 rounded-2xl border border-line bg-surface p-4 sm:p-5 shadow-xs space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b border-line">
             <div className="flex items-center gap-2 font-bold text-ink text-sm">
               <Filter className="h-4 w-4 text-primary" />
-              <span>Refine Listings</span>
+              <span>Football Gear Filters</span>
               {activeFiltersCount > 0 && (
                 <span className="rounded-full bg-primary/10 text-primary text-[11px] font-black px-2 py-0.5">
                   {activeFiltersCount}
@@ -570,33 +659,11 @@ export function MarketplaceCatalog({
             )}
           </div>
 
-          {/* 1. Location / State Filter */}
+          {/* 1. Category Filter */}
           <div className="space-y-2.5">
             <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-primary" />
-              Nigerian Trading Hub
-            </label>
-            <div className="relative">
-              <select
-                value={selectedState}
-                onChange={(e) => setSelectedState(e.target.value)}
-                className="w-full h-10 appearance-none rounded-2xl border border-line bg-sunken/60 pl-3.5 pr-8 text-xs font-semibold text-ink focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                {NIGERIAN_STATES.map((state) => (
-                  <option key={state} value={state}>
-                    {state}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
-            </div>
-          </div>
-
-          {/* 2. Category Filter */}
-          <div className="space-y-2.5 pt-4 border-t border-line">
-            <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
               <Tag className="h-3.5 w-3.5 text-primary" />
-              Category
+              Department
             </label>
             <div className="space-y-1">
               {categoryItems.map((cat) => {
@@ -605,35 +672,159 @@ export function MarketplaceCatalog({
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    onClick={() => setSelectedCategory(isSelected ? "" : cat.id)}
+                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                       isSelected
                         ? "bg-primary text-white shadow-soft"
                         : "text-muted hover:text-ink hover:bg-sunken"
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <Icon className={`h-4 w-4 ${isSelected ? "text-white" : "text-primary"}`} />
+                      <Icon className={`h-3.5 w-3.5 ${isSelected ? "text-white" : "text-primary"}`} />
                       {cat.label}
                     </span>
-                    {isSelected && <Check className="h-3.5 w-3.5" />}
+                    {isSelected && <Check className="h-3 w-3" />}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* 3. Price Filter */}
+          {/* 2. Player Filter */}
+          <div className="space-y-2.5 pt-4 border-t border-line">
+            <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+              <User className="h-3.5 w-3.5 text-primary" />
+              Shop by Player
+            </label>
+            <div className="relative">
+              <select
+                value={selectedPlayer}
+                onChange={(e) => setSelectedPlayer(e.target.value)}
+                className="w-full h-9 appearance-none rounded-xl border border-line bg-sunken/60 pl-3 pr-8 text-xs font-bold text-ink focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">All Players</option>
+                {FOOTBALL_PLAYERS.map((p) => (
+                  <option key={p.id} value={p.name}>
+                    #{p.number} {p.name} ({p.club})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+            </div>
+          </div>
+
+          {/* 3. Club Filter */}
+          <div className="space-y-2.5 pt-4 border-t border-line">
+            <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+              <Trophy className="h-3.5 w-3.5 text-primary" />
+              Club / Team
+            </label>
+            <div className="relative">
+              <select
+                value={selectedClub}
+                onChange={(e) => setSelectedClub(e.target.value)}
+                className="w-full h-9 appearance-none rounded-xl border border-line bg-sunken/60 pl-3 pr-8 text-xs font-bold text-ink focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">All Clubs</option>
+                {FOOTBALL_CLUBS.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.crest} {c.name} ({c.league})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+            </div>
+          </div>
+
+          {/* 4. National Team Filter */}
+          <div className="space-y-2.5 pt-4 border-t border-line">
+            <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5 text-emerald-600" />
+              Country / National Team
+            </label>
+            <div className="relative">
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full h-9 appearance-none rounded-xl border border-line bg-sunken/60 pl-3 pr-8 text-xs font-bold text-ink focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">All Countries</option>
+                {FOOTBALL_COUNTRIES.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.flag} {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+            </div>
+          </div>
+
+          {/* 5. Edition Filter */}
+          <div className="space-y-2.5 pt-4 border-t border-line">
+            <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+              <Award className="h-3.5 w-3.5 text-accent" />
+              Kit &amp; Gear Edition
+            </label>
+            <div className="space-y-1">
+              <button
+                type="button"
+                onClick={() => setSelectedEdition("")}
+                className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  !selectedEdition ? "bg-primary-soft text-primary-darker font-bold" : "text-muted hover:bg-sunken"
+                }`}
+              >
+                All Editions
+              </button>
+              {FOOTBALL_EDITIONS.map((ed) => (
+                <button
+                  key={ed}
+                  type="button"
+                  onClick={() => setSelectedEdition(selectedEdition === ed ? "" : ed)}
+                  className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                    selectedEdition === ed
+                      ? "bg-primary-soft text-primary-darker font-bold border border-primary/20"
+                      : "text-muted hover:text-ink hover:bg-sunken"
+                  }`}
+                >
+                  {ed}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 6. Brand Filter */}
+          <div className="space-y-2.5 pt-4 border-t border-line">
+            <label className="text-xs font-bold text-ink uppercase tracking-wider">
+              Brand
+            </label>
+            <div className="grid grid-cols-4 gap-1">
+              {["", ...FOOTBALL_BRANDS].map((brand) => (
+                <button
+                  key={brand || "all"}
+                  type="button"
+                  onClick={() => setSelectedBrand(brand)}
+                  className={`py-1.5 text-center rounded-xl text-[11px] font-bold transition-all border ${
+                    selectedBrand === brand
+                      ? "bg-primary text-white border-primary shadow-xs"
+                      : "bg-surface border-line text-muted hover:text-ink"
+                  }`}
+                >
+                  {brand || "All"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 7. Price Filter */}
           <div className="space-y-3 pt-4 border-t border-line">
             <label className="text-xs font-bold text-ink uppercase tracking-wider">
-              Price Range (₦)
+              Price Range (PKR)
             </label>
-
-            {/* Presets */}
             <div className="space-y-1">
               {PRICE_PRESETS.map((preset, idx) => (
                 <button
                   key={preset.label}
+                  type="button"
                   onClick={() => handlePresetSelect(idx)}
                   className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                     selectedPresetIndex === idx
@@ -646,31 +837,24 @@ export function MarketplaceCatalog({
               ))}
             </div>
 
-            {/* Custom Min / Max inputs */}
-            <form onSubmit={handleCustomPriceApply} className="space-y-2 pt-2">
+            <form onSubmit={handleCustomPriceApply} className="space-y-2 pt-1">
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-[10px] text-muted font-bold block mb-1">Min (₦)</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="Min"
-                    value={customMin}
-                    onChange={(e) => setCustomMin(e.target.value)}
-                    className="h-8 text-xs rounded-xl"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-muted font-bold block mb-1">Max (₦)</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="Max"
-                    value={customMax}
-                    onChange={(e) => setCustomMax(e.target.value)}
-                    className="h-8 text-xs rounded-xl"
-                  />
-                </div>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Min"
+                  value={customMin}
+                  onChange={(e) => setCustomMin(e.target.value)}
+                  className="h-8 text-xs rounded-xl"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Max"
+                  value={customMax}
+                  onChange={(e) => setCustomMax(e.target.value)}
+                  className="h-8 text-xs rounded-xl"
+                />
               </div>
               <Button type="submit" variant="outline" size="sm" className="w-full h-8 rounded-xl text-xs font-bold">
                 Apply Price
@@ -678,60 +862,8 @@ export function MarketplaceCatalog({
             </form>
           </div>
 
-          {/* 4. Condition Filter */}
+          {/* 8. Availability */}
           <div className="space-y-2.5 pt-4 border-t border-line">
-            <label className="text-xs font-bold text-ink uppercase tracking-wider">
-              Item Condition
-            </label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {[
-                { id: "", label: "All" },
-                { id: "new", label: "Brand New" },
-                { id: "used", label: "Used" },
-              ].map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setCondition(c.id as typeof condition)}
-                  className={`py-1.5 text-center rounded-xl text-xs font-semibold transition-all border ${
-                    condition === c.id
-                      ? "bg-primary text-white border-primary shadow-xs"
-                      : "bg-surface border-line text-muted hover:text-ink"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 5. Trust and availability filters */}
-          <div className="space-y-3 pt-4 border-t border-line">
-            <label className="flex items-center justify-between cursor-pointer group">
-              <span className="text-xs font-semibold text-ink group-hover:text-primary transition-colors flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-success" />
-                Identity Verified Only
-              </span>
-              <input
-                type="checkbox"
-                checked={identityVerifiedOnly}
-                onChange={(e) => setIdentityVerifiedOnly(e.target.checked)}
-                className="h-4 w-4 rounded accent-primary cursor-pointer"
-              />
-            </label>
-
-            <label className="flex items-center justify-between cursor-pointer group">
-              <span className="text-xs font-semibold text-ink group-hover:text-primary transition-colors flex items-center gap-1.5">
-                <Handshake className="h-3.5 w-3.5 text-primary" />
-                Price Am Only
-              </span>
-              <input
-                type="checkbox"
-                checked={negotiableOnly}
-                onChange={(e) => setNegotiableOnly(e.target.checked)}
-                className="h-4 w-4 rounded accent-primary cursor-pointer"
-              />
-            </label>
-
             <label className="flex items-center justify-between cursor-pointer group">
               <span className="text-xs font-semibold text-ink group-hover:text-primary transition-colors flex items-center gap-1.5">
                 <Package className="h-3.5 w-3.5 text-muted" />
@@ -774,40 +906,52 @@ export function MarketplaceCatalog({
               <div className="flex flex-wrap items-center gap-1.5 ml-auto">
                 {selectedCategory && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                    <span className="capitalize">{selectedCategory}</span>
+                    <span className="capitalize">{categoryItems.find((c) => c.id === selectedCategory)?.label || selectedCategory}</span>
                     <button onClick={() => setSelectedCategory("")} className="hover:opacity-75">✕</button>
                   </span>
                 )}
-                {selectedState !== "All Nigeria" && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-sunken border border-line px-3 py-1 text-xs font-semibold text-ink">
-                    <span>{selectedState}</span>
-                    <button onClick={() => setSelectedState("All Nigeria")} className="hover:opacity-75">✕</button>
+                {selectedPlayer && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-bold text-primary">
+                    <span>Player: {selectedPlayer}</span>
+                    <button onClick={() => setSelectedPlayer("")} className="hover:opacity-75">✕</button>
                   </span>
                 )}
-                {condition && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-sunken border border-line px-3 py-1 text-xs font-semibold text-ink">
-                    <span className="capitalize">{condition === "new" ? "Brand New" : "Pre-Owned"}</span>
-                    <button onClick={() => setCondition("")} className="hover:opacity-75">✕</button>
+                {selectedClub && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-bold text-primary">
+                    <span>Club: {selectedClub}</span>
+                    <button onClick={() => setSelectedClub("")} className="hover:opacity-75">✕</button>
+                  </span>
+                )}
+                {selectedCountry && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-700">
+                    <span>Country: {selectedCountry}</span>
+                    <button onClick={() => setSelectedCountry("")} className="hover:opacity-75">✕</button>
+                  </span>
+                )}
+                {selectedEdition && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 border border-accent/25 px-3 py-1 text-xs font-bold text-ink">
+                    <span>Edition: {selectedEdition}</span>
+                    <button onClick={() => setSelectedEdition("")} className="hover:opacity-75">✕</button>
+                  </span>
+                )}
+                {selectedBrand && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-sunken border border-line px-3 py-1 text-xs font-bold text-ink">
+                    <span>Brand: {selectedBrand}</span>
+                    <button onClick={() => setSelectedBrand("")} className="hover:opacity-75">✕</button>
                   </span>
                 )}
                 {(appliedMin !== undefined || appliedMax !== undefined) && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-sunken border border-line px-3 py-1 text-xs font-semibold text-ink">
                     <span>
-                      {appliedMin ? `₦${appliedMin.toLocaleString()}` : "₦0"} - {appliedMax ? `₦${appliedMax.toLocaleString()}` : "Any"}
+                      {appliedMin ? `PKR ${appliedMin.toLocaleString()}` : "PKR 0"} - {appliedMax ? `PKR ${appliedMax.toLocaleString()}` : "Any"}
                     </span>
                     <button onClick={() => { setAppliedMin(undefined); setAppliedMax(undefined); setSelectedPresetIndex(0); }} className="hover:opacity-75">✕</button>
                   </span>
                 )}
-                {negotiableOnly && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                    <span>Price Am Only</span>
-                    <button onClick={() => setNegotiableOnly(false)} className="hover:opacity-75">✕</button>
-                  </span>
-                )}
-                {identityVerifiedOnly && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success-soft px-3 py-1 text-xs font-semibold text-success">
-                    <span>Identity verified</span>
-                    <button onClick={() => setIdentityVerifiedOnly(false)} className="hover:opacity-75" aria-label="Remove identity verified filter">✕</button>
+                {inStockOnly && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-sunken border border-line px-3 py-1 text-xs font-semibold text-ink">
+                    <span>In Stock Only</span>
+                    <button onClick={() => setInStockOnly(false)} className="hover:opacity-75">✕</button>
                   </span>
                 )}
                 <button
@@ -930,36 +1074,17 @@ export function MarketplaceCatalog({
                 </button>
               </div>
 
-              {/* State Filter */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-primary" />
-                  Nigerian Trading Hub
-                </label>
-                <select
-                  value={selectedState}
-                  onChange={(e) => setSelectedState(e.target.value)}
-                  className="w-full h-10 rounded-2xl border border-line bg-sunken px-3 text-xs font-semibold text-ink"
-                >
-                  {NIGERIAN_STATES.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Category Filter */}
+              {/* Department Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
                   <Tag className="h-3.5 w-3.5 text-primary" />
-                  Category
+                  Department
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {categoryItems.map((cat) => (
                     <button
                       key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
+                      onClick={() => setSelectedCategory(selectedCategory === cat.id ? "" : cat.id)}
                       className={`px-3 py-2 rounded-xl text-xs font-semibold text-left truncate transition-colors border ${
                         selectedCategory === cat.id
                           ? "bg-primary text-white border-primary"
@@ -967,6 +1092,109 @@ export function MarketplaceCatalog({
                       }`}
                     >
                       {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Player Filter */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 text-primary" />
+                  Shop by Player
+                </label>
+                <select
+                  value={selectedPlayer}
+                  onChange={(e) => setSelectedPlayer(e.target.value)}
+                  className="w-full h-10 rounded-2xl border border-line bg-sunken px-3 text-xs font-semibold text-ink"
+                >
+                  <option value="">All Players</option>
+                  {FOOTBALL_PLAYERS.map((p) => (
+                    <option key={p.id} value={p.name}>
+                      #{p.number} {p.name} ({p.club})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Club Filter */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <Trophy className="h-3.5 w-3.5 text-primary" />
+                  Club / Team
+                </label>
+                <select
+                  value={selectedClub}
+                  onChange={(e) => setSelectedClub(e.target.value)}
+                  className="w-full h-10 rounded-2xl border border-line bg-sunken px-3 text-xs font-semibold text-ink"
+                >
+                  <option value="">All Clubs</option>
+                  {FOOTBALL_CLUBS.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.crest} {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Country Filter */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-emerald-600" />
+                  Country / National Team
+                </label>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  className="w-full h-10 rounded-2xl border border-line bg-sunken px-3 text-xs font-semibold text-ink"
+                >
+                  <option value="">All Countries</option>
+                  {FOOTBALL_COUNTRIES.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.flag} {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Edition */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <Award className="h-3.5 w-3.5 text-accent" />
+                  Edition
+                </label>
+                <select
+                  value={selectedEdition}
+                  onChange={(e) => setSelectedEdition(e.target.value)}
+                  className="w-full h-10 rounded-2xl border border-line bg-sunken px-3 text-xs font-semibold text-ink"
+                >
+                  <option value="">All Editions</option>
+                  {FOOTBALL_EDITIONS.map((ed) => (
+                    <option key={ed} value={ed}>
+                      {ed}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Brand Filter */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-ink uppercase tracking-wider">
+                  Brand
+                </label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {["", ...FOOTBALL_BRANDS].map((brand) => (
+                    <button
+                      key={brand || "all"}
+                      type="button"
+                      onClick={() => setSelectedBrand(brand)}
+                      className={`py-2 text-center rounded-xl text-xs font-bold border ${
+                        selectedBrand === brand
+                          ? "bg-primary text-white border-primary"
+                          : "bg-surface border-line text-muted"
+                      }`}
+                    >
+                      {brand || "All"}
                     </button>
                   ))}
                 </div>
@@ -994,54 +1222,10 @@ export function MarketplaceCatalog({
                 </div>
               </div>
 
-              {/* Condition */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-ink uppercase tracking-wider">
-                  Condition
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {[
-                    { id: "", label: "All" },
-                    { id: "new", label: "Brand New" },
-                    { id: "used", label: "Used" },
-                  ].map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setCondition(c.id as typeof condition)}
-                      className={`py-2 text-center rounded-xl text-xs font-semibold border ${
-                        condition === c.id
-                          ? "bg-primary text-white border-primary"
-                          : "bg-surface border-line text-muted"
-                      }`}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Toggles */}
+              {/* In stock toggle */}
               <div className="space-y-2 pt-2 border-t border-line">
                 <label className="flex items-center justify-between text-xs font-semibold text-ink">
-                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-success" /> Identity Verified Only</span>
-                  <input
-                    type="checkbox"
-                    checked={identityVerifiedOnly}
-                    onChange={(e) => setIdentityVerifiedOnly(e.target.checked)}
-                    className="h-4 w-4 rounded accent-primary"
-                  />
-                </label>
-                <label className="flex items-center justify-between text-xs font-semibold text-ink">
-                  <span>Price Am Only</span>
-                  <input
-                    type="checkbox"
-                    checked={negotiableOnly}
-                    onChange={(e) => setNegotiableOnly(e.target.checked)}
-                    className="h-4 w-4 rounded accent-primary"
-                  />
-                </label>
-                <label className="flex items-center justify-between text-xs font-semibold text-ink">
-                  <span>In Stock Only</span>
+                  <span className="inline-flex items-center gap-1.5"><Package className="h-4 w-4 text-primary" /> In Stock Only</span>
                   <input
                     type="checkbox"
                     checked={inStockOnly}

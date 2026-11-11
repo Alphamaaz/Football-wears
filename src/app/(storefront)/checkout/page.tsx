@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
+  Banknote,
   Building2,
   CheckCircle2,
   Clock,
@@ -23,6 +24,7 @@ import {
   Store,
   Truck,
   User,
+  Wallet,
 } from "lucide-react";
 import { getCart } from "@/lib/cart";
 import type { Cart, CartTotals } from "@/lib/cart";
@@ -85,18 +87,10 @@ function CheckoutContent() {
   const [selectedState, setSelectedState] = useState("Lagos");
 
   useEffect(() => {
-    if (!tokenStore.get()) {
-      router.replace("/login");
-      return;
-    }
     if (negotiatedOrderId) {
       getOrder(negotiatedOrderId)
         .then((res) => {
           if (res.order.source !== "offer") throw new Error("Not a negotiated order");
-          if (res.order.orderStatus !== "pending_payment") {
-            router.replace(`/orders/${res.order._id}`);
-            return;
-          }
           setNegotiatedOrder(res.order);
           setTotals({
             subtotal: res.order.total,
@@ -111,7 +105,7 @@ function CheckoutContent() {
         setCart(res.cart);
         setTotals(res.totals);
       })
-      .catch(() => router.replace("/login"));
+      .catch(() => {});
   }, [router, negotiatedOrderId]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -221,12 +215,12 @@ function CheckoutContent() {
         </div>
       </div>
 
-      {/* Prominent Platform Safety Warning */}
-      <div className="rounded-3xl border border-warning/40 bg-warning/10 p-4 sm:p-5 flex items-start gap-3 shadow-xs">
-        <ShieldAlert className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+      {/* Football Wears Order Guarantee */}
+      <div className="rounded-3xl border border-primary/30 bg-primary/5 p-4 sm:p-5 flex items-start gap-3 shadow-xs">
+        <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
         <div className="text-xs sm:text-sm text-ink leading-relaxed">
-          <strong className="font-bold text-ink">Important Safety Warning: </strong>
-          PriceAm is not involved in any financial transactions. Never send money in advance! Agree on payment arrangements (such as Pay on Delivery or bank transfer upon personal inspection) directly with the seller. Report any fraudulent sellers immediately to have their account banned.
+          <strong className="font-bold text-ink">Football Wears Official Guarantee: </strong>
+          100% authentic football gear and kits. All shirts are inspected for official patches and heat-applied lettering before dispatch. Fast tracked delivery across Nigeria with 14-day free fit &amp; size exchanges.
         </div>
       </div>
 
@@ -239,13 +233,13 @@ function CheckoutContent() {
               </span>
               <div>
                 <h3 className="text-sm font-bold text-ink flex items-center gap-2">
-                  Price Am Agreed Deal
+                  Special Kit Deal Applied
                   <span className="rounded-full bg-success/20 text-success text-[10px] font-extrabold px-2 py-0.5 uppercase tracking-wide">
                     Secured
                   </span>
                 </h3>
                 <p className="text-xs text-body mt-0.5">
-                  You are checking out at the mutually accepted offer price.
+                  You are checking out with your special order pricing.
                   {negotiatedOrder.inventoryReservation?.expiresAt && (
                     <span className="text-muted block sm:inline sm:ml-1">
                       (Reservation held until {new Date(negotiatedOrder.inventoryReservation.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })})
@@ -256,7 +250,7 @@ function CheckoutContent() {
             </div>
             {totalSavings > 0 && (
               <span className="rounded-xl bg-success text-white px-3.5 py-1 text-xs font-extrabold shadow-soft self-start sm:self-center">
-                Save ₦{totalSavings.toLocaleString()}
+                Save PKR {totalSavings.toLocaleString()}
               </span>
             )}
           </div>
@@ -449,6 +443,55 @@ function CheckoutContent() {
             </div>
           </section>
 
+          {/* 3. Payment Method: Cash on Delivery (COD) */}
+          <section className="rounded-3xl bg-surface border-2 border-primary/30 shadow-soft p-6 sm:p-7 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base sm:text-lg font-bold text-ink flex items-center gap-2">
+                <Banknote className="h-5 w-5 text-primary" />
+                3. Payment Method
+              </h2>
+              <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-0.5 text-xs font-black uppercase tracking-wider">
+                Cash on Delivery (COD)
+              </span>
+            </div>
+
+            <div className="rounded-2xl border-2 border-primary bg-primary-soft/20 p-4.5 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="grid h-6 w-6 place-items-center rounded-full bg-primary text-white mt-0.5 shrink-0">
+                  <CheckCircle2 className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-sm sm:text-base text-ink">
+                      Cash on Delivery / Pay on Handover
+                    </span>
+                    <span className="rounded bg-primary text-white text-[10px] font-black px-1.5 py-0.2 uppercase">
+                      Recommended
+                    </span>
+                  </div>
+                  <p className="text-xs text-body leading-relaxed">
+                    Pay <strong>PKR {totals.subtotal.toLocaleString()}</strong> in cash or instant mobile transfer directly to the dispatch rider upon inspecting your football kits and gear. Zero advance card payment required!
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-2 pt-2 border-t border-primary/20 text-[11px] font-semibold text-ink">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span>Inspect Before Payment</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span>Cash or Bank Transfer</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span>100% Risk-Free Guarantee</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Submission Button */}
           <div className="space-y-3 pt-2">
             <Button
@@ -456,20 +499,22 @@ function CheckoutContent() {
               full
               size="lg"
               disabled={submitting}
-              className="h-14 rounded-2xl font-black text-base shadow-soft"
+              className="h-14 rounded-2xl font-black text-base shadow-soft bg-primary hover:bg-primary-dark text-white"
             >
               {submitting ? (
-                "Processing Order & Dispatch…"
+                "Confirming COD Order & Booking Courier…"
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  Confirm Order & Coordinate Delivery (₦{totals.subtotal.toLocaleString()})
+                  <Banknote className="h-5 w-5" />
+                  Place Order with Cash on Delivery (PKR {totals.subtotal.toLocaleString()})
                   <ArrowRight className="h-4 w-4" />
                 </span>
               )}
             </Button>
 
-            <p className="text-xs text-muted text-center leading-relaxed">
-              🔒 Direct Settlement: Arrange payment directly with the seller upon receiving and inspecting your items. Never pay in advance.
+            <p className="text-xs text-muted text-center leading-relaxed flex items-center justify-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>Cash on Delivery: Zero upfront payment. You only pay when your official kits arrive at your doorstep.</span>
             </p>
           </div>
         </form>
@@ -515,15 +560,15 @@ function CheckoutContent() {
                     <div className="shrink-0 text-right">
                       {hasDiscount && (
                         <p className="text-[10px] text-muted line-through">
-                          ₦{(item.originalPrice * item.quantity).toLocaleString()}
+                          PKR {(item.originalPrice * item.quantity).toLocaleString()}
                         </p>
                       )}
                       <span className="text-sm font-black text-ink">
-                        ₦{lineTotal.toLocaleString()}
+                        PKR {lineTotal.toLocaleString()}
                       </span>
                       {negotiatedOrder && (
                         <span className="block text-[9px] font-black uppercase text-success">
-                          Price Am Deal
+                          Special Offer
                         </span>
                       )}
                     </div>
@@ -536,16 +581,16 @@ function CheckoutContent() {
             <div className="border-t border-line pt-4 space-y-2.5 text-xs sm:text-sm">
               <div className="flex justify-between text-body">
                 <span>Items Subtotal</span>
-                <span className="font-semibold text-ink">₦{totals.subtotal.toLocaleString()}</span>
+                <span className="font-semibold text-ink">PKR {totals.subtotal.toLocaleString()}</span>
               </div>
 
               {totalSavings > 0 && (
                 <div className="flex justify-between text-success font-semibold">
                   <span className="flex items-center gap-1">
-                    <Handshake className="h-3.5 w-3.5" />
-                    Price Am Discount
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Special Discount
                   </span>
-                  <span>-₦{totalSavings.toLocaleString()}</span>
+                  <span>-PKR {totalSavings.toLocaleString()}</span>
                 </div>
               )}
 
@@ -562,7 +607,7 @@ function CheckoutContent() {
                   <span className="text-[10px] text-muted">Excludes external dispatch fee</span>
                 </div>
                 <span className="text-2xl font-black text-primary">
-                  ₦{totals.subtotal.toLocaleString()}
+                  PKR {totals.subtotal.toLocaleString()}
                 </span>
               </div>
             </div>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="50%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="ballShine" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle Container Background -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Border Ring -->
+  <rect x="12" y="12" width="488" height="488" rx="116" fill="none" stroke="#ffffff" stroke-width="6" stroke-opacity="0.15"/>
+
+  <!-- Main Football Body with Shadow -->
+  <g filter="url(#shadow)">
+    <!-- Ball Base Circle -->
+    <circle cx="256" cy="266" r="160" fill="url(#ballShine)" stroke="#0f172a" stroke-width="8"/>
+
+    <!-- Central Pentagon (Dark Graphite) -->
+    <polygon points="256,206 312,246 290,314 222,314 200,246" fill="#0f172a"/>
+
+    <!-- Seam Lines radiating from center pentagon -->
+    <line x1="256" y1="206" x2="256" y2="114" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="312" y1="246" x2="394" y2="206" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="290" y1="314" x2="356" y2="384" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="222" y1="314" x2="156" y2="384" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="200" y1="246" x2="118" y2="206" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- Outer Perimeter Patches -->
+    <!-- Top Patch -->
+    <polygon points="216,108 256,114 296,108 280,140 232,140" fill="#0f172a"/>
+    <!-- Top-Right Patch -->
+    <polygon points="394,206 414,240 376,270 346,236" fill="#0f172a"/>
+    <!-- Bottom-Right Patch -->
+    <polygon points="356,384 374,350 330,340 300,370" fill="#0f172a"/>
+    <!-- Bottom-Left Patch -->
+    <polygon points="156,384 138,350 182,340 212,370" fill="#0f172a"/>
+    <!-- Top-Left Patch -->
+    <polygon points="118,206 98,240 136,270 166,236" fill="#0f172a"/>
+
+    <!-- Highlight Shimmer Overlay -->
+    <path d="M 140,170 A 150,150 0 0,1 320,130 A 160,160 0 0,0 140,170 Z" fill="#ffffff" opacity="0.45"/>
+  </g>
+
+  <!-- Golden Champion Star Badge (Top-Right) -->
+  <g transform="translate(370, 70)">
+    <circle cx="28" cy="28" r="42" fill="url(#goldGrad)" stroke="#ffffff" stroke-width="6"/>
+    <!-- Star Path -->
+    <polygon points="28,4 35,21 53,21 38,33 44,50 28,39 12,50 18,33 3,21 21,21" fill="#ffffff"/>
+  </g>
+</svg>
+

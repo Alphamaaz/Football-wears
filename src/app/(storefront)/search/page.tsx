@@ -8,7 +8,7 @@ export async function generateMetadata({
   searchParams: Promise<{ q?: string }>;
 }): Promise<Metadata> {
   const { q } = await searchParams;
-  return { title: q ? `"${q}" — Search Results · PriceAm` : "Browse Marketplace · PriceAm" };
+  return { title: q ? `“${q}” — Search Kits & Gear · Football Wears` : "Search Football Collection · Football Wears" };
 }
 
 export default async function SearchPage({
@@ -24,14 +24,14 @@ export default async function SearchPage({
   });
 
   return (
-    <div className="space-y-8">
-      <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-primary">Marketplace Search</span>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="rounded-3xl border border-line bg-surface p-6 sm:p-8 shadow-soft">
+        <span className="text-xs font-black uppercase tracking-wider text-primary">Store Search</span>
         <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight mt-1">
-          {q ? `Search results for “${q}”` : "All Marketplace Listings"}
+          {q ? `Search results for “${q}”` : "All Football Wears Products"}
         </h1>
-        <p className="text-xs sm:text-sm text-muted mt-1">
-          Filter by Nigerian state, category, Price Am eligibility, or price range.
+        <p className="text-xs sm:text-sm text-muted mt-1.5">
+          Find match kits, cleats, retro jerseys, or accessories. Filter by category, price, or size.
         </p>
       </div>
 

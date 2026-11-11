@@ -10,7 +10,7 @@ export default function AuthLayout({
     <main className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-cream px-4 py-8 sm:py-12">
       <div className="w-full max-w-lg">
         <div className="mb-6 flex justify-center sm:mb-8">
-          <Link href="/" aria-label="Back to Price Am marketplace" className="inline-flex transition-opacity hover:opacity-85">
+          <Link href="/" aria-label="Back to Football Wears store" className="inline-flex transition-opacity hover:opacity-85">
             <Logo variant="wordmark" />
           </Link>
         </div>

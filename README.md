@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Football Wears Pro Shop ⚽🔥
+
+A high-end, responsive football e-commerce storefront and store management dashboard inspired by Unisport.
+
+## Features
+
+- **Storefront & Catalog**:
+  - Club jerseys (Real Madrid, Arsenal, Barcelona, Man City, Liverpool, PSG, Bayern, AC Milan).
+  - National team kits (Argentina, Nigeria, France, Brazil, England, Portugal).
+  - Retro classics vault (Manchester United 2008 UCL Final, Arsenal Invincibles 2004, France 1998).
+  - Pro football boots (Nike Mercurial Superfly, Adidas Predator Elite FT, Puma Future 7).
+  - Pro anti-slip hexagonal grip socks.
+  - Shop by star player with official portraits (Mbappé, Haaland, Bellingham, Messi, Yamal, Saka, Ronaldo, Osimhen, Vinícius Jr).
+- **Currencies & Checkout**:
+  - All prices and revenue formatted in Pakistani Rupee (**PKR**).
+  - **100% Cash on Delivery (COD)** payment arrangement with zero card/advance fee required.
+- **Store Administration ([`/admin`](http://localhost:3000/admin))**:
+  - Live revenue analytics and total COD order counts.
+  - Order status dispatch management (Preparing Kit, Out for Delivery with Courier, Delivered & Cash Collected).
+  - Kit & gear inventory manager.
+  - Fast football product upload studio ([`/seller/products/new`](http://localhost:3000/seller/products/new)).
+- **Authentication**:
+  - Dedicated Store Owner Admin Login ([`/login`](http://localhost:3000/login)) for Hamad.
+  - Public registration closed.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Typography**: Geist Sans
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies and start the local development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) in your browser.

@@ -52,18 +52,14 @@ export default function CartPage() {
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
-    if (!tokenStore.get()) {
-      router.replace("/login");
-      return;
-    }
     getCart()
       .then((res) => {
         setCart(res.cart);
         setTotals(res.totals);
       })
-      .catch(() => router.replace("/login"))
+      .catch(() => {})
       .finally(() => setLoading(false));
-  }, [router]);
+  }, []);
 
   async function mutate(
     id: string,
@@ -153,17 +149,17 @@ export default function CartPage() {
           Your shopping cart is empty
         </h1>
         <p className="mt-3 max-w-md mx-auto text-sm sm:text-base text-muted leading-relaxed">
-          Looks like you haven&apos;t added any items yet. Discover thousands of verified listings across Nigeria, or get the best deals using Price Am!
+          Looks like you haven&apos;t added any football kits or gear yet. Discover official player issue shirts, pro boots, and grip socks!
         </p>
 
         {/* Quick Category Discovery */}
         <div className="mt-8 flex flex-wrap justify-center gap-2.5 max-w-lg mx-auto">
           {[
-            { label: "Electronics", href: "/category/electronics" },
-            { label: "Fashion & Wears", href: "/category/fashion" },
-            { label: "Home & Furniture", href: "/category/home" },
-            { label: "Gaming & Consoles", href: "/category/gaming" },
-            { label: "Books & Stationeries", href: "/category/books" },
+            { label: "Football Shirts", href: "/category/club-jerseys" },
+            { label: "National Teams", href: "/category/national-teams" },
+            { label: "Boots & Cleats", href: "/category/football-boots" },
+            { label: "Football Socks", href: "/category/football-socks" },
+            { label: "Retro Classics", href: "/category/retro-classics" },
           ].map((cat) => (
             <Link
               key={cat.label}
@@ -260,7 +256,7 @@ export default function CartPage() {
                 <div className="text-right">
                   <span className="text-xs text-muted">Store Subtotal: </span>
                   <strong className="text-xs sm:text-sm font-bold text-ink">
-                    ₦{group.subtotal.toLocaleString()}
+                    PKR {group.subtotal.toLocaleString()}
                   </strong>
                 </div>
               </div>
@@ -300,7 +296,7 @@ export default function CartPage() {
                               {item.title}
                             </Link>
                             <span className="text-sm sm:text-base font-extrabold text-ink whitespace-nowrap">
-                              ₦{lineTotal.toLocaleString()}
+                              PKR {lineTotal.toLocaleString()}
                             </span>
                           </div>
 
@@ -320,7 +316,7 @@ export default function CartPage() {
                           )}
 
                           <div className="mt-1 text-xs text-muted">
-                            ₦{item.priceSnapshot.toLocaleString()} each
+                            PKR {item.priceSnapshot.toLocaleString()} each
                           </div>
                         </div>
 
@@ -365,18 +361,8 @@ export default function CartPage() {
                             </button>
                           </div>
 
-                          {/* Quick Actions: Price Am Bargain, Wishlist, Remove */}
+                          {/* Quick Actions: Wishlist, Remove */}
                           <div className="flex items-center gap-2 sm:gap-3 text-xs">
-                            {/* Price Am Bargain Shortcut */}
-                            <Link
-                              href={`/products/${item.product}?negotiate=1`}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary-soft/50 px-2.5 py-1.5 font-bold text-primary hover:bg-primary-soft hover:shadow-soft transition-all"
-                              title="Make a Price Am offer on this item"
-                            >
-                              <Sparkles className="h-3.5 w-3.5" />
-                              <span>Price Am</span>
-                            </Link>
-
                             {/* Save to Wishlist */}
                             <button
                               type="button"
@@ -462,7 +448,7 @@ export default function CartPage() {
               <div className="flex justify-between text-muted">
                 <span>Items Subtotal ({totals.totalItems} items)</span>
                 <span className="font-bold text-ink">
-                  ₦{totals.subtotal.toLocaleString()}
+                  PKR {totals.subtotal.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-muted">
@@ -512,7 +498,7 @@ export default function CartPage() {
                 <span className="text-[10px] text-muted">Excludes external dispatch fee</span>
               </div>
               <div className="text-xl sm:text-2xl font-black text-primary">
-                ₦{totals.subtotal.toLocaleString()}
+                PKR {totals.subtotal.toLocaleString()}
               </div>
             </div>
 
@@ -546,9 +532,9 @@ export default function CartPage() {
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <Handshake className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
                 <span>
-                  <strong>Price Am Offers:</strong> Click &quot;Price Am&quot; on any item to negotiate directly before purchasing.
+                  <strong>Cash on Delivery (COD):</strong> Pay cash or mobile transfer only after inspecting your kits upon arrival.
                 </span>
               </li>
               <li className="flex items-start gap-2">

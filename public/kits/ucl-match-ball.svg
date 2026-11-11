@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gearBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#gearBg)"/>
+  <circle cx="300" cy="300" r="210" fill="#00e676" opacity="0.08"/>
+
+  <!-- Graphic representation based on gear type -->
+  <g transform="translate(150, 120)">
+    <!-- Outer Shield / Container -->
+    <rect x="0" y="0" width="300" height="320" rx="36" fill="#1e293b" stroke="#334155" stroke-width="3"/>
+    <circle cx="150" cy="140" r="90" fill="#0f172a" stroke="#00e676" stroke-width="4"/>
+    <text x="150" y="150" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="44" fill="#ffffff">⚽</text>
+    <text x="150" y="275" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="16" fill="#00e676" letter-spacing="2">PRO MATCH GRADE</text>
+  </g>
+
+  <!-- Title Pill -->
+  <g transform="translate(300, 520)">
+    <rect x="-140" y="-18" width="280" height="36" rx="18" fill="#ffffff"/>
+    <text x="0" y="6" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#0f172a" letter-spacing="1.5">ADIDAS UCL LONDON MATCH BALL</text>
+  </g>
+</svg>

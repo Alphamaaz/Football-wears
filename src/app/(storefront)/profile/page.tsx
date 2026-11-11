@@ -16,6 +16,7 @@ import {
   Lock,
   LogOut,
   Mail,
+  Package,
   Pencil,
   Phone,
   Save,
@@ -442,6 +443,7 @@ export default function ProfilePage() {
   }
 
   const isSeller = user.roles.includes("seller");
+  const isAdmin = user.roles.includes("admin");
   const identityVerificationStatus = user.sellerProfile?.identityVerification?.status || user.sellerProfile?.kycStatus || "not_submitted";
   const verificationSummary = identityVerificationStatus === "approved"
       ? "Identity verified"
@@ -636,44 +638,26 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Right: Active Role Switcher Pill (Buyer vs Seller) */}
+          {/* Right: Admin Dashboard Shortcut */}
           <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end gap-3 shrink-0">
-            {isSeller ? (
-              <div className="inline-flex items-center rounded-2xl border border-line bg-sunken/80 p-1 shadow-xs">
-                <button
-                  type="button"
-                  onClick={() => handleSwitchRole("buyer")}
-                  disabled={switchingRole}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    user.activeRole === "buyer"
-                      ? "bg-surface text-primary shadow-soft"
-                      : "text-muted hover:text-ink"
-                  }`}
+            {isAdmin ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-ink text-white px-4 py-2.5 text-xs font-black shadow-soft hover:bg-ink-900 transition-all"
                 >
-                  🛒 Buyer Mode
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSwitchRole("seller")}
-                  disabled={switchingRole}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    user.activeRole === "seller"
-                      ? "bg-primary text-white shadow-soft"
-                      : "text-muted hover:text-ink"
-                  }`}
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  Admin Dashboard
+                </Link>
+                <Link
+                  href="/seller/products/new"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-primary text-white px-4 py-2.5 text-xs font-black shadow-soft hover:bg-primary-dark transition-all"
                 >
-                  🏪 Seller Mode
-                </button>
+                  <Package className="h-4 w-4" />
+                  Upload Product
+                </Link>
               </div>
-            ) : (
-              <Link
-                href="/seller/onboarding"
-                className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-primary to-accent px-4 py-2.5 text-xs font-bold text-white shadow-glow hover:brightness-105 active:scale-95 transition-all"
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                Become a Seller
-              </Link>
-            )}
+            ) : null}
 
             <button
               onClick={handleSignOut}
@@ -783,7 +767,7 @@ export default function ProfilePage() {
               href="/orders"
               className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold text-muted hover:text-ink hover:bg-sunken/50 transition-colors"
             >
-              <span>My Orders &amp; Price Am Deals</span>
+              <span>My Orders &amp; Kit Purchases</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
             {isSeller && (

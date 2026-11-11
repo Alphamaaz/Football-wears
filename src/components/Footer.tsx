@@ -1,43 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { Handshake, ShieldCheck } from "lucide-react";
+import { Award, Flame, RefreshCw, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 
 const COLUMNS = [
   {
-    title: "Marketplace",
+    title: "Shop Collections",
     links: [
-      { href: "/", label: "Browse products" },
-      { href: "/offers", label: "My offers" },
-      { href: "/orders", label: "My orders" },
+      { href: "/category/club-jerseys", label: "2024/25 Club Kits" },
+      { href: "/category/national-teams", label: "National Team Kits" },
+      { href: "/category/retro-classics", label: "Retro Classics Vault" },
+      { href: "/category/football-boots", label: "Pro Boots & Cleats" },
+      { href: "/category/training-wear", label: "Training & Tracksuits" },
+      { href: "/category/match-balls", label: "FIFA Match Balls" },
     ],
   },
   {
-    title: "Sell on PriceAm",
+    title: "Personalization",
     links: [
-      { href: "/seller/onboarding", label: "Become a seller" },
-      { href: "/seller", label: "Seller dashboard" },
-      { href: "/seller/products/new", label: "List an item" },
+      { href: "/category/club-jerseys", label: "Official Name & Number Printing" },
+      { href: "/category/club-jerseys", label: "UCL & League Badges" },
+      { href: "/about", label: "Authenticity & Fabrics (HEAT.RDY/Dri-FIT)" },
+      { href: "/about", label: "Kit Care & Washing Guide" },
     ],
   },
   {
-    title: "Account",
+    title: "Orders & Support",
     links: [
-      { href: "/login", label: "Log in" },
-      { href: "/register", label: "Create account" },
-      { href: "/profile", label: "Manage profile" },
+      { href: "/cart", label: "Shopping Cart" },
+      { href: "/orders", label: "Track My Order" },
+      { href: "/wishlist", label: "Saved Wishlist" },
+      { href: "/contact", label: "Contact Kit Specialist" },
     ],
   },
   {
-    title: "Information",
+    title: "About Store",
     links: [
-      { href: "/about", label: "About us" },
-      { href: "/contact", label: "Contact us" },
-      { href: "/privacy", label: "Privacy policy" },
-      { href: "/terms", label: "Terms & conditions" },
-      { href: "/cookies", label: "Cookie policy" },
+      { href: "/about", label: "Founder's Story" },
+      { href: "/admin", label: "Admin & Product Upload" },
+      { href: "/contact", label: "Lagos Dispatch Hub" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms & 14-Day Exchanges" },
     ],
   },
 ];
@@ -53,37 +58,49 @@ export function Footer() {
     <footer className="mt-auto hidden border-t border-line bg-surface sm:block">
       {/* Trust bar */}
       <div className="border-b border-line bg-sunken/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm font-medium text-body">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-xs sm:text-sm font-semibold text-body">
           <span className="flex items-center gap-2">
-            <Handshake className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-            Direct buyer &amp; seller deals
+            <ShieldCheck className="h-5 w-5 text-primary" strokeWidth={1.8} />
+            100% Authentic &amp; Official Licensed Kits
           </span>
           <span className="flex items-center gap-2">
-            <ShieldCheck className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-            Safe meetups &amp; in-person inspection
+            <Sparkles className="h-5 w-5 text-primary" strokeWidth={1.8} />
+            Official Nameset &amp; Badge Customization
           </span>
-          <span className="hidden sm:flex items-center gap-2">
-            <span className="text-primary font-bold">₦</span>
-            Negotiate the price, every time
+          <span className="flex items-center gap-2">
+            <Truck className="h-5 w-5 text-primary" strokeWidth={1.8} />
+            Express Tracked Nationwide Delivery
+          </span>
+          <span className="hidden lg:flex items-center gap-2">
+            <RefreshCw className="h-5 w-5 text-primary" strokeWidth={1.8} />
+            14-Day Size Exchange Guarantee
           </span>
         </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
           <Logo />
-          <p className="mt-3 text-sm text-muted max-w-xs leading-relaxed">
-            The marketplace where every price is negotiable and every account
-            can sell. Make an offer, get a counter, close the deal.
+          <p className="text-sm text-muted max-w-sm leading-relaxed">
+            Your personal destination for top-tier football wears. Sourcing authentic club jerseys,
+            rare retro classics, match boots, and official accessories directly for dedicated players and fans.
           </p>
+          <div className="flex items-center gap-3 text-xs font-bold text-ink">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-primary">
+              <Flame className="h-3.5 w-3.5" /> 2,500+ Players Geared Up
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-sunken px-3 py-1 text-muted">
+              <Award className="h-3.5 w-3.5 text-accent" /> 4.96/5 Star Rating
+            </span>
+          </div>
         </div>
 
         {COLUMNS.map((col) => (
           <div key={col.title}>
-            <h3 className="text-sm font-semibold text-ink mb-3">{col.title}</h3>
-            <ul className="space-y-2.5 text-sm text-body">
+            <h3 className="text-sm font-bold text-ink mb-3 tracking-wide">{col.title}</h3>
+            <ul className="space-y-2.5 text-xs sm:text-sm text-body">
               {col.links.map((l) => (
-                <li key={l.href}>
+                <li key={l.label}>
                   <Link href={l.href} className="hover:text-primary transition-colors">
                     {l.label}
                   </Link>
@@ -96,8 +113,8 @@ export function Footer() {
 
       <div className="border-t border-line py-5">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted">
-          <span>© {new Date().getFullYear()} PriceAm. All rights reserved.</span>
-          <span>Built for negotiation-first commerce.</span>
+          <span>© {new Date().getFullYear()} Football Wears. All rights reserved.</span>
+          <span>Crafted with passion for the beautiful game ⚽</span>
         </div>
       </div>
     </footer>

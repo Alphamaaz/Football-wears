@@ -78,12 +78,12 @@ export function ProductGallery({
           >
             <img
               key={selected.url}
-              src={selected?.url ? assetUrl(selected.url) : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=85"}
+              src={selected?.url ? assetUrl(selected.url) : "/kits/real-madrid-2025-home.jpg"}
               alt={selected?.alt ?? title}
               onError={(e) => {
                 const el = e.currentTarget;
-                if (!el.src.includes("photo-1523275335684-37898b6baf30")) {
-                  el.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=85";
+                if (!el.src.includes("/kits/real-madrid-2025-home.jpg")) {
+                  el.src = "/kits/real-madrid-2025-home.jpg";
                 }
               }}
               className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105 select-none"
@@ -113,15 +113,7 @@ export function ProductGallery({
           )}
         </div>
 
-        {/* Price Am Negotiable Floating Tag */}
-        {isNegotiable && (
-          <div className="absolute bottom-3.5 left-3.5 pointer-events-none">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md border border-line px-3.5 py-1.5 text-xs font-black text-primary shadow-glow">
-              <Handshake className="h-4 w-4 text-primary" strokeWidth={2.4} />
-              Price Am · Negotiable
-            </span>
-          </div>
-        )}
+
 
         {/* Image Counter & Fullscreen trigger */}
         <div className="absolute top-3.5 right-3.5 flex items-center gap-2">
@@ -206,13 +198,13 @@ export function ProductGallery({
                 ) : (
                   <>
                     <img
-                      src={item.url ? assetUrl(item.url) : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"}
+                      src={item.url ? assetUrl(item.url) : "/kits/real-madrid-2025-home.jpg"}
                       alt={item.alt ?? `${title} photo ${index + 1}`}
                       loading="lazy"
                       onError={(e) => {
                         const el = e.currentTarget;
-                        if (!el.src.includes("photo-1523275335684-37898b6baf30")) {
-                          el.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80";
+                        if (!el.src.includes("/kits/real-madrid-2025-home.jpg")) {
+                          el.src = "/kits/real-madrid-2025-home.jpg";
                         }
                       }}
                       className="h-full w-full object-cover"

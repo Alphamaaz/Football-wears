@@ -32,14 +32,8 @@ export default function SellerOnboardingPage() {
   const [storeImagePreview, setStoreImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!tokenStore.get()) {
-      router.replace("/login?next=/seller/onboarding");
-      return;
-    }
-    getMe()
-      .then((res) => setUser(res.user))
-      .catch(() => router.replace("/login?next=/seller/onboarding"))
-      .finally(() => setLoading(false));
+    // This is a private personal football store; public seller onboarding is disabled.
+    router.replace("/admin");
   }, [router]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

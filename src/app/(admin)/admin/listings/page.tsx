@@ -23,7 +23,7 @@ const filters: Array<{ value: ListingModerationStatus | "all"; label: string }> 
 ];
 
 function formatPrice(value: number) {
-  return `₦${Number(value || 0).toLocaleString("en-NG")}`;
+  return `PKR ${Number(value || 0).toLocaleString()}`;
 }
 
 export default function AdminListingsPage() {
@@ -102,10 +102,18 @@ export default function AdminListingsPage() {
               <h1 className="text-3xl font-black text-ink">Listing moderation</h1>
               <p className="mt-1 max-w-2xl text-sm text-muted">Every listing remains hidden from buyers until an administrator approves it.</p>
             </div>
-            <label className="flex min-w-64 items-center gap-2 rounded-2xl border border-line bg-sunken px-4 py-3">
-              <Search className="h-4 w-4 text-muted" />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, store, category" className="w-full bg-transparent text-sm outline-none" />
-            </label>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Link
+                href="/seller/products/new"
+                className="inline-flex items-center gap-1.5 rounded-2xl bg-primary text-white px-4 py-2.5 text-xs font-black shadow-soft hover:bg-primary-dark transition-all"
+              >
+                + Upload New Product
+              </Link>
+              <label className="flex min-w-64 items-center gap-2 rounded-2xl border border-line bg-sunken px-4 py-3">
+                <Search className="h-4 w-4 text-muted" />
+                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, store, category" className="w-full bg-transparent text-sm outline-none" />
+              </label>
+            </div>
           </div>
         </header>
 

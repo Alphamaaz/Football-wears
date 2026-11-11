@@ -21,7 +21,7 @@ export function SearchBar({ className = "" }: { className?: string }) {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Search for electronics, fashion…"
+        placeholder="Search kits, boots, retro jerseys, clubs (e.g. Madrid, Arsenal, Messi)..."
         className="w-full h-11 rounded-full border border-line bg-sunken pl-11 pr-4 text-sm text-ink placeholder:text-muted transition-shadow focus:outline-none focus:ring-4 focus:ring-primary/15 focus:border-primary focus:bg-surface"
       />
     </form>

@@ -27,7 +27,7 @@ function eventText(message: ChatMessage) {
   const action = message.event?.action;
   const price = message.event?.price;
   if (!action || price == null) return "Offer updated";
-  return `Offer ${action}: ₦${price.toLocaleString()}`;
+  return `Offer ${action}: PKR ${price.toLocaleString()}`;
 }
 
 export default function ConversationPage() {
@@ -223,7 +223,7 @@ export default function ConversationPage() {
                   </span>
                   {typeof conversation.order === "object" && conversation.order?.total && (
                     <span className="text-xs font-bold text-ink bg-sunken px-2.5 py-0.5 rounded-full border border-line">
-                      Agreed: ₦{conversation.order.total.toLocaleString()}
+                      Agreed: PKR {conversation.order.total.toLocaleString()}
                     </span>
                   )}
                 </div>
@@ -233,7 +233,7 @@ export default function ConversationPage() {
                 {product && (
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
                     {typeof product.price === "number" && (
-                      <span className="font-extrabold text-primary">₦{product.price.toLocaleString()}</span>
+                      <span className="font-extrabold text-primary">PKR {product.price.toLocaleString()}</span>
                     )}
                     {(product.location?.city || product.location?.state) && (
                       <span className="inline-flex items-center gap-1">
@@ -312,7 +312,7 @@ export default function ConversationPage() {
         {product && <Link href={`/products/${product._id}`} className="chat-mobile-product md:hidden">{product.coverImage?.url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={assetUrl(product.coverImage.url)} alt={product.title} />
-        ) : <span><Package /></span>}<div><strong>{product.title}</strong><small><MapPin /> {[product.location?.city, product.location?.state].filter(Boolean).join(", ") || "Product listing"}{typeof product.price === "number" ? ` · ₦${product.price.toLocaleString()}` : ""}</small></div><ArrowRight /></Link>}
+        ) : <span><Package /></span>}<div><strong>{product.title}</strong><small><MapPin /> {[product.location?.city, product.location?.state].filter(Boolean).join(", ") || "Product listing"}{typeof product.price === "number" ? ` · PKR ${product.price.toLocaleString()}` : ""}</small></div><ArrowRight /></Link>}
 
         {/* Message Thread */}
         <div

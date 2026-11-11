@@ -61,11 +61,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [copiedId, setCopiedId] = useState(false);
 
   useEffect(() => {
-    if (!tokenStore.get()) {
-      router.replace("/login");
-      return;
-    }
-
     getMe()
       .then((res) => setCurrentUser(res.user))
       .catch(() => {});
@@ -73,9 +68,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     getOrder(id)
       .then((res) => setOrder(res.order))
       .catch((err) => {
-        setError(err instanceof ApiRequestError ? err.message : "Could not load deal details.");
+        setError(err instanceof ApiRequestError ? err.message : "Could not load order details.");
       });
-  }, [id, router]);
+  }, [id]);
 
   async function openOrderWorkspace() {
     setError(null);
@@ -208,19 +203,19 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        {/* Price Am Deal Savings Ribbon */}
+        {/* Special Offer Savings Ribbon */}
         {isNegotiated && savings > 0 && (
           <div className="mt-6 rounded-2xl bg-gradient-to-r from-success-soft via-surface to-primary-soft/40 border border-success/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-success flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4" /> Agreed Price Am Deal
+                <CheckCircle2 className="h-4 w-4" /> Special Kit Offer Applied
               </span>
               <p className="text-sm text-body mt-0.5">
-                Original listed price: <span className="line-through">₦{originalSum.toLocaleString()}</span> · Agreed price: <strong className="text-ink font-extrabold">₦{order.total.toLocaleString()}</strong>
+                Original listed price: <span className="line-through">PKR {originalSum.toLocaleString()}</span> · Agreed price: <strong className="text-ink font-extrabold">PKR {order.total.toLocaleString()}</strong>
               </p>
             </div>
             <span className="self-start sm:self-center rounded-xl bg-success text-white px-3 py-1 text-xs font-extrabold shadow-xs">
-              Saved ₦{savings.toLocaleString()}
+              Saved PKR {savings.toLocaleString()}
             </span>
           </div>
         )}
@@ -294,32 +289,53 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                       )}
                       <div className="mt-1 flex items-baseline gap-2">
                         <span className="text-sm font-extrabold text-primary">
-                          ₦{item.finalPrice.toLocaleString()}
+                          PKR {item.finalPrice.toLocaleString()}
                         </span>
                         {item.finalPrice < item.originalPrice && (
                           <span className="text-xs text-muted line-through">
-                            ₦{item.originalPrice.toLocaleString()}
+                            PKR {item.originalPrice.toLocaleString()}
                           </span>
                         )}
                       </div>
                     </div>
                     <span className="text-base font-extrabold text-ink shrink-0">
-                      ₦{item.lineTotal.toLocaleString()}
+                      PKR {item.lineTotal.toLocaleString()}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Cash on Delivery Badge */}
+            <div className="mt-6 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-emerald-800 font-bold">
+                <span className="text-base">💵</span>
+                <div>
+                  <p className="font-extrabold text-emerald-900">Payment: Cash on Delivery (COD)</p>
+                  <p className="text-[11px] text-emerald-700 font-medium">Pay courier in cash or instant transfer after inspecting your kit</p>
+                </div>
+              </div>
+              <span className="self-start sm:self-center rounded-full bg-emerald-600 text-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wider">
+                Zero Upfront Payment
+              </span>
+            </div>
+
             {/* Financial Summary */}
             <div className="mt-6 pt-5 border-t border-line space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between text-body">
-                <span>Agreed Price</span>
-                <span className="font-bold">₦{order.subtotal.toLocaleString()}</span>
+                <span>Items Subtotal</span>
+                <span className="font-bold">PKR {order.subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-body">
+                <span>Tracked Express Courier</span>
+                <span className="font-bold text-emerald-600">{order.deliveryTotal === 0 ? "Free Express" : `PKR ${order.deliveryTotal.toLocaleString()}`}</span>
               </div>
               <div className="flex justify-between items-baseline pt-3 border-t border-line text-ink">
-                <span className="font-extrabold text-sm sm:text-base">Total Deal Amount</span>
-                <span className="font-black text-xl text-primary">₦{order.total.toLocaleString()}</span>
+                <div>
+                  <span className="font-extrabold text-sm sm:text-base block">Amount Due on Delivery</span>
+                  <span className="text-[11px] text-muted font-normal">Payable to dispatch rider upon arrival</span>
+                </div>
+                <span className="font-black text-xl text-primary">PKR {order.total.toLocaleString()}</span>
               </div>
             </div>
           </section>

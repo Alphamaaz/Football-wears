@@ -374,23 +374,23 @@ function OffersContent() {
                           Original Price
                         </span>
                         <span className="text-xs text-muted line-through">
-                          ₦{o.listedPrice.toLocaleString()}
+                          PKR {o.listedPrice.toLocaleString()}
                         </span>
                       </div>
 
                       <div>
                         <span className="text-[10px] uppercase font-bold text-primary block">
-                          Current Price Am Offer
+                          Current Special Deal
                         </span>
                         <span className="text-xl sm:text-2xl font-black text-ink">
-                          ₦{o.currentPrice.toLocaleString()}
+                          PKR {o.currentPrice.toLocaleString()}
                         </span>
                       </div>
 
                       {savings > 0 && (
                         <div className="rounded-xl bg-success-soft border border-success/30 px-2.5 py-1 text-xs font-bold text-success flex items-center gap-1">
                           <TrendingDown className="h-3.5 w-3.5" />
-                          <span>-₦{savings.toLocaleString()} ({percentOff}% off)</span>
+                          <span>-PKR {savings.toLocaleString()} ({percentOff}% off)</span>
                         </div>
                       )}
                     </div>
@@ -420,7 +420,7 @@ function OffersContent() {
                                 : "Countered"}
                             </span>
                             <span className="font-bold text-ink">
-                              ₦{h.price.toLocaleString()}
+                              PKR {h.price.toLocaleString()}
                             </span>
                           </div>
                         );
@@ -464,7 +464,7 @@ function OffersContent() {
                                 : "bg-surface border border-line hover:border-primary text-ink"
                             }`}
                           >
-                            -{pct}% (₦{discounted.toLocaleString()})
+                            -{pct}% (PKR {discounted.toLocaleString()})
                           </button>
                         );
                       })}
@@ -478,8 +478,8 @@ function OffersContent() {
                       }}
                     >
                       <div className="relative flex-1">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted">
-                          ₦
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted">
+                          PKR
                         </span>
                         <Input
                           type="number"
@@ -491,7 +491,7 @@ function OffersContent() {
                           value={counterPrice}
                           onChange={(e) => setCounterPrice(e.target.value)}
                           placeholder="Your counter price"
-                          className="pl-8 h-11 rounded-xl text-sm font-bold"
+                          className="pl-12 h-11 rounded-xl text-sm font-bold"
                         />
                       </div>
                       <Button
@@ -511,7 +511,7 @@ function OffersContent() {
                     <div className="rounded-2xl border border-success/30 bg-gradient-to-r from-success-soft/70 via-surface to-primary-soft/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-soft">
                       <div>
                         <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-success">
-                          <CheckCircle2 className="h-4 w-4" /> Deal Locked at ₦
+                          <CheckCircle2 className="h-4 w-4" /> Deal Locked at PKR{" "}
                           {o.currentPrice.toLocaleString()}
                         </span>
                         <p className="text-xs text-body mt-0.5">
@@ -526,7 +526,7 @@ function OffersContent() {
                               size="sm"
                               className="rounded-xl font-bold bg-primary text-white shadow-soft"
                             >
-                              Checkout ₦{o.currentPrice.toLocaleString()}
+                              Checkout PKR {o.currentPrice.toLocaleString()}
                             </Button>
                           </Link>
                         )}
@@ -558,7 +558,7 @@ function OffersContent() {
                           onClick={() => act(o._id, () => acceptOffer(o._id))}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          Accept ₦{o.currentPrice.toLocaleString()}
+                          Accept PKR {o.currentPrice.toLocaleString()}
                         </Button>
                         <Button
                           variant="outline"
@@ -628,7 +628,7 @@ function OffersContent() {
               Mutually accepted price for <strong>{acceptedNotice.offer.productTitle}</strong>:
             </p>
             <div className="my-3 text-3xl font-black text-success">
-              ₦{acceptedNotice.offer.currentPrice.toLocaleString()}
+              PKR {acceptedNotice.offer.currentPrice.toLocaleString()}
             </div>
 
             <div className="rounded-2xl bg-sunken/60 border border-line p-4 text-left text-xs space-y-1 mb-5">

@@ -1,6 +1,6 @@
-/* Products API — mirrors Backend/src/modules/products */
+/* Products API — Frontend-only static football catalog */
 
-import { api, apiForm, SERVER_API_URL } from "./api";
+import { FOOTBALL_PRODUCTS } from "./football-data";
 
 export interface ProductImage {
   url: string;
@@ -36,7 +36,14 @@ export interface Product {
   title: string;
   category: string;
   price: number;
-  /** Only present on seller-own endpoints */
+  originalPrice?: number;
+  discountPercent?: number;
+  club?: string;
+  country?: string;
+  player?: string;
+  edition?: string;
+  badge?: string;
+  colorway?: string;
   minPrice?: number;
   stock: number;
   condition: "new" | "used";
@@ -99,6 +106,11 @@ export interface ListProductsParams {
   page?: number;
   limit?: number;
   category?: string;
+  club?: string;
+  country?: string;
+  player?: string;
+  edition?: string;
+  brand?: string;
   condition?: "new" | "used";
   minPrice?: number;
   maxPrice?: number;
@@ -111,119 +123,191 @@ export interface ListProductsParams {
   sort?: ProductSort;
 }
 
-function toQuery(params: ListProductsParams): string {
-  const q = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== "") q.set(k, String(v));
+function filterStaticProducts(params: ListProductsParams = {}): ProductListResponse {
+  let list = [...FOOTBALL_PRODUCTS];
+
+  if (params.category) {
+    const cat = params.category.toLowerCase().trim();
+    list = list.filter((p) => p.category.toLowerCase() === cat);
   }
-  const s = q.toString();
-  return s ? `?${s}` : "";
+
+  if (params.club) {
+    const club = params.club.toLowerCase().trim();
+    list = list.filter((p) => p.club?.toLowerCase().includes(club));
+  }
+
+  if (params.country) {
+    const country = params.country.toLowerCase().trim();
+    list = list.filter((p) => p.country?.toLowerCase().includes(country));
+  }
+
+  if (params.player) {
+    const player = params.player.toLowerCase().trim();
+    list = list.filter((p) => p.player?.toLowerCase().includes(player) || p.title.toLowerCase().includes(player));
+  }
+
+  if (params.edition) {
+    const ed = params.edition.toLowerCase().trim();
+    list = list.filter((p) => p.edition?.toLowerCase().includes(ed));
+  }
+
+  if (params.brand) {
+    const brand = params.brand.toLowerCase().trim();
+    list = list.filter((p) => p.brand?.toLowerCase() === brand);
+  }
+
+  if (params.search) {
+    const q = params.search.toLowerCase().trim();
+    list = list.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        (p.brand && p.brand.toLowerCase().includes(q)) ||
+        (p.club && p.club.toLowerCase().includes(q)) ||
+        (p.country && p.country.toLowerCase().includes(q)) ||
+        (p.player && p.player.toLowerCase().includes(q)) ||
+        p.category.toLowerCase().includes(q)
+    );
+  }
+
+  if (params.condition) {
+    list = list.filter((p) => p.condition === params.condition);
+  }
+
+  if (params.inStock) {
+    list = list.filter((p) => p.stock > 0);
+  }
+
+  if (params.minPrice !== undefined) {
+    list = list.filter((p) => p.price >= params.minPrice!);
+  }
+
+  if (params.maxPrice !== undefined) {
+    list = list.filter((p) => p.price <= params.maxPrice!);
+  }
+
+  const sort = params.sort || "featured";
+  switch (sort) {
+    case "price_asc":
+      list.sort((a, b) => a.price - b.price);
+      break;
+    case "price_desc":
+      list.sort((a, b) => b.price - a.price);
+      break;
+    case "popular":
+      list.sort((a, b) => b.salesCount - a.salesCount);
+      break;
+    case "rating":
+      list.sort((a, b) => b.ratingAverage - a.ratingAverage);
+      break;
+    case "newest":
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      break;
+    case "featured":
+    default:
+      list.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
+      break;
+  }
+
+  const page = params.page || 1;
+  const limit = params.limit || 24;
+  const total = list.length;
+  const pages = Math.ceil(total / limit) || 1;
+  const start = (page - 1) * limit;
+  const products = list.slice(start, start + limit);
+
+  return { products, total, page, pages };
 }
 
 /** Client-side list (browsing with filters). */
-export async function listProducts(params: ListProductsParams = {}) {
-  return api<ProductListResponse>(`/products${toQuery(params)}`);
+export async function listProducts(params: ListProductsParams = {}): Promise<ProductListResponse> {
+  return filterStaticProducts(params);
 }
 
 /** Client-side public product detail. */
-export async function getProduct(id: string) {
-  return api<{ product: Product }>(`/products/${id}`);
+export async function getProduct(id: string): Promise<{ product: Product }> {
+  const product = FOOTBALL_PRODUCTS.find((p) => p._id === id) || FOOTBALL_PRODUCTS[0];
+  return { product };
 }
 
 export type ProductReportReason = "suspected_scam" | "misleading_listing" | "counterfeit_item" | "prohibited_item" | "already_sold" | "other";
 
 export async function reportProduct(productId: string, reason: ProductReportReason, details: string) {
-  return api<{ message: string }>("/reports", {
-    method: "POST",
-    body: { productId, reason, details },
-  });
+  return { message: "Thank you. Your feedback has been noted by Football Wears support." };
 }
 
 /**
- * Server-side list for RSC pages — plain fetch, no auth needed.
- * Never throws: storefront pages should render even if the API is down.
+ * Server-side list for RSC pages.
  */
 export async function listProductsServer(
   params: ListProductsParams = {},
 ): Promise<ProductListResponse> {
-  try {
-    const res = await fetch(`${SERVER_API_URL}/products${toQuery(params)}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error(String(res.status));
-    return (await res.json()) as ProductListResponse;
-  } catch {
-    return { products: [], total: 0, page: 1, pages: 0 };
-  }
+  return filterStaticProducts(params);
 }
 
-/** Server-side detail for RSC pages. Returns null when missing/unavailable. */
+/** Server-side detail for RSC pages. */
 export async function getProductServer(id: string): Promise<Product | null> {
-  try {
-    const res = await fetch(`${SERVER_API_URL}/products/${id}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { product: Product };
-    return data.product;
-  } catch {
-    return null;
-  }
+  const found = FOOTBALL_PRODUCTS.find((p) => p._id === id);
+  return found || null;
 }
 
-/** Seller: own products (includes minPrice). */
+/** Seller: own products. */
 export async function listMyProducts(page = 1, limit = 20) {
-  return api<ProductListResponse>(`/products/mine?page=${page}&limit=${limit}`);
+  return filterStaticProducts({ page, limit });
 }
 
-/**
- * Seller: fetch one of your own products for editing.
- * Pages through /products/mine — the only endpoint that includes minPrice
- * and inactive listings (the public GET also bumps viewsCount).
- */
 export async function getMyProduct(id: string): Promise<Product | null> {
-  let page = 1;
-  // Cap the walk defensively; sellers rarely exceed a few pages.
-  for (let i = 0; i < 20; i++) {
-    const res = await listMyProducts(page, 50);
-    const found = res.products.find((p) => p._id === id);
-    if (found) return found;
-    if (page >= res.pages) return null;
-    page += 1;
-  }
-  return null;
+  return FOOTBALL_PRODUCTS.find((p) => p._id === id) || null;
 }
 
-/** Seller: create listing (multipart — cover image file required). */
 export async function createProduct(form: FormData) {
-  return apiForm<{ message: string; product: Product }>("/products", form);
+  const title = String(form.get("title") || "New Football Kit / Gear");
+  const price = Number(form.get("price")) || 45000;
+  const category = String(form.get("category") || "club-jerseys");
+  const description = String(form.get("description") || "Authentic official merchandise.");
+  const brand = String(form.get("brand") || "Nike");
+
+  const newProduct: Product = {
+    ...FOOTBALL_PRODUCTS[0],
+    _id: `fw-item-${Date.now()}`,
+    title,
+    price,
+    category,
+    description,
+    brand,
+    stock: Number(form.get("stock")) || 15,
+    condition: "new",
+    coverImage: {
+      url: "/kits/real-madrid-2025-home.jpg",
+      alt: title,
+    },
+    images: [{ url: "/kits/real-madrid-2025-home.jpg", alt: title }],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  FOOTBALL_PRODUCTS.unshift(newProduct);
+  return { message: "Item uploaded successfully to your personal store", product: newProduct };
 }
 
-/** Seller: update listing. */
 export async function updateProduct(id: string, form: FormData) {
-  return apiForm<{ message: string; product: Product }>(
-    `/products/${id}`,
-    form,
-    "PATCH",
-  );
+  return { message: "Item updated", product: FOOTBALL_PRODUCTS[0] };
 }
 
-/** Seller: soft-delete (status → inactive). */
 export async function removeProduct(id: string) {
-  return api<{ message: string }>(`/products/${id}`, { method: "DELETE" });
+  return { message: "Item archived" };
 }
 
-/** Category options shown in UI (API accepts any string). */
+/** Category options shown in UI. */
 export const CATEGORIES = [
-  "mobile-phones",
-  "laptops-desktops",
-  "kids-toys",
-  "beauty-skincare",
-  "equipment-tools",
-  "electronics",
-  "fashion",
-  "home",
-  "gaming",
-  "books",
-  "other",
+  "club-jerseys",
+  "national-teams",
+  "retro-classics",
+  "football-boots",
+  "training-wear",
+  "goalkeeper",
+  "match-balls",
+  "accessories",
 ] as const;
 
 export const NIGERIAN_STATES = [

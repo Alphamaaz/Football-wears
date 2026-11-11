@@ -2,10 +2,16 @@ import type { Metadata } from "next";
 import { InfoDocument } from "@/components/InfoDocument";
 
 export const metadata: Metadata = {
-  title: "About Us | Price Am",
-  description: "Learn how Price Am helps people across Nigeria buy, sell, negotiate, and trade more safely.",
+  title: "About Us | Football Wears",
+  description: "Learn how Football Wears brings authentic football kits, retro classics, and pro match gear to players and fans.",
 };
 
 export default function AboutPage() {
-  return <InfoDocument source="about.md" label="About Price Am" summary="A negotiation-first marketplace built to help people across Nigeria find what they need, agree a fair price, and trade with greater confidence." />;
+  return (
+    <InfoDocument
+      source="about.md"
+      label="About Football Wears"
+      summary="A dedicated personal football shop created by a kit collector and player to bring authentic 2024/25 jerseys, retro classics, and pro boots directly to you."
+    />
+  );
 }

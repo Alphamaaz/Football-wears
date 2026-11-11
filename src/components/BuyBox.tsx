@@ -1,597 +1,331 @@
 "use client";
 
-/*
-  Interactive BuyBox for the product detail page.
-  Features:
-  - "Price Am" numeric bargaining drawer with fast % discount presets
-  - Variant selection, Add to Cart, Buy Now, and Wishlist
-  - Nigerian Marketplace Safety Tips
-*/
-
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
+  ArrowRight,
+  Award,
+  Banknote,
+  CheckCircle2,
   Clock,
-  Flag,
-  Handshake,
+  Flame,
   Heart,
-  MessageSquare,
-  ShieldAlert,
+  MessageCircle,
+  Package,
+  RefreshCw,
+  Share2,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
-  Store,
-  TrendingDown,
-  User,
-  X,
+  Trophy,
+  Truck,
+  Zap,
 } from "lucide-react";
+import type { Product } from "@/lib/products";
+import { addCartItem } from "@/lib/cart";
 import { addWishlistItem, removeWishlistItem } from "@/lib/wishlist";
-import { createOffer } from "@/lib/offers";
-import type { VariantSelection } from "@/lib/offers";
-import { reportProduct, type Product, type ProductReportReason } from "@/lib/products";
-import { ApiRequestError, assetUrl, tokenStore } from "@/lib/api";
 import { notifyCommerceChanged } from "@/lib/commerce-events";
-import { openListingConversation } from "@/lib/chat";
 import { Alert, Button, Input } from "@/components/ui";
 
 export function BuyBox({ product }: { product: Product }) {
   const router = useRouter();
-  const hasVariants = product.variants.length > 0;
 
-  const [selected, setSelected] = useState<Record<string, string>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
-  const isNegotiateParam = useSyncExternalStore(
-    () => () => {},
-    () => (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("negotiate") === "1" : false),
-    () => false
-  );
-  const [offerOpenManual, setOfferOpenManual] = useState<boolean | null>(null);
-  const offerOpen = offerOpenManual ?? isNegotiateParam;
-  const setOfferOpen = (val: boolean) => setOfferOpenManual(val);
+  // Initial variant choices
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    product.variants.forEach((v) => {
+      if (v.options.length > 0) {
+        initial[v.name] = v.options[0].value;
+      }
+    });
+    return initial;
+  });
 
-  const [offerPrice, setOfferPrice] = useState("");
+  const [customName, setCustomName] = useState("");
+  const [customNumber, setCustomNumber] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [added, setAdded] = useState(false);
   const [savedToWishlist, setSavedToWishlist] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const allSelected =
-    !hasVariants || product.variants.every((v) => selected[v.name]);
+  // Compute active price from selections
+  const displayPrice = useMemo(() => {
+    let price = product.price;
+    product.variants.forEach((v) => {
+      const chosenValue = selectedVariants[v.name];
+      const opt = v.options.find((o) => o.value === chosenValue);
+      if (opt && opt.price > price) {
+        price = opt.price;
+      }
+    });
+    return price;
+  }, [product, selectedVariants]);
 
-  const selections: VariantSelection[] = useMemo(
-    () =>
-      hasVariants
-        ? Object.entries(selected).map(([name, value]) => ({ name, value }))
-        : [],
-    [hasVariants, selected],
-  );
-
-  /** Price/stock for the current selection — mirrors backend logic. */
-  const { displayPrice, availableStock } = useMemo(() => {
-    if (!hasVariants || !allSelected) {
-      return { displayPrice: product.price, availableStock: product.stock };
+  const activeSelections = useMemo(() => {
+    const result = Object.entries(selectedVariants).map(([name, value]) => ({ name, value }));
+    if (customName.trim() || customNumber.trim()) {
+      result.push({
+        name: "Custom Print",
+        value: `${customName.trim().toUpperCase()} #${customNumber.trim() || "0"}`,
+      });
     }
-    const options = product.variants.map(
-      (v) => v.options.find((o) => o.value === selected[v.name])!,
-    );
-    return {
-      displayPrice: Math.max(...options.map((o) => o.price)),
-      availableStock: Math.min(...options.map((o) => o.stock)),
-    };
-  }, [hasVariants, allSelected, selected, product]);
+    return result;
+  }, [selectedVariants, customName, customNumber]);
 
-  const inStock = availableStock > 0;
-
-  const [reported, setReported] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [reportReason, setReportReason] = useState<ProductReportReason>("misleading_listing");
-  const [reportDetails, setReportDetails] = useState("");
-
-  const sellerAvatar = product.sellerStoreImage || product.sellerProfileImage;
-  const displayStoreName = product.storeName || product.sellerFullName || "Merchant Store";
-  const identityVerified = product.sellerKycStatus === "approved";
-  const sellerTrustBadge = identityVerified
-    ? { label: "Identity verified", icon: ShieldCheck, className: "bg-success-soft text-success border-success/20" }
-    : { label: "Identity not verified", icon: User, className: "bg-sunken text-body border-line" };
-  const SellerTrustIcon = sellerTrustBadge.icon;
-
-  function formatSellerTenure(dateString?: string): string {
-    if (!dateString) return "1+ month on PriceAm";
-    const joined = new Date(dateString);
-    const now = new Date();
-    const diffMonths = (now.getFullYear() - joined.getFullYear()) * 12 + (now.getMonth() - joined.getMonth());
-    if (diffMonths >= 12) {
-      const years = Math.floor(diffMonths / 12);
-      return `${years}+ year${years > 1 ? "s" : ""} on PriceAm`;
-    }
-    if (diffMonths >= 1) {
-      return `${diffMonths}+ month${diffMonths > 1 ? "s" : ""} on PriceAm`;
-    }
-    return "New on PriceAm";
-  }
-
-  function requireAuthOrSelection(): boolean {
-    setError(null);
+  async function handleAddToCart(goToCheckout = false) {
+    setBusy(true);
     setNotice(null);
-    if (!tokenStore.get()) {
-      router.push("/login");
-      return false;
+    try {
+      await addCartItem({
+        productId: product._id,
+        quantity,
+        variantSelections: activeSelections,
+      });
+      notifyCommerceChanged();
+      setAdded(true);
+      if (goToCheckout) {
+        router.push("/checkout");
+      } else {
+        setNotice(`Added ${quantity}x "${product.title}" to your cart.`);
+        setTimeout(() => setAdded(false), 2500);
+      }
+    } catch {
+      setNotice("Could not add item to cart. Please try again.");
+    } finally {
+      setBusy(false);
     }
-    if (!allSelected) {
-      setError("Please select an option for each variant first.");
-      return false;
-    }
-    return true;
   }
 
-  function showApiError(err: unknown, fallback: string) {
-    setError(err instanceof ApiRequestError ? err.message : fallback);
-  }
-
-  async function onWishlist() {
-    setError(null);
-    setNotice(null);
-    if (!tokenStore.get()) {
-      router.push("/login");
-      return;
-    }
-    setBusy("wish");
+  async function handleToggleWishlist() {
     try {
       if (savedToWishlist) {
         await removeWishlistItem(product._id);
         setSavedToWishlist(false);
-        notifyCommerceChanged();
-        setNotice("Removed from wishlist.");
-        return;
+      } else {
+        await addWishlistItem(product._id);
+        setSavedToWishlist(true);
       }
-      await addWishlistItem(product._id);
-      setSavedToWishlist(true);
       notifyCommerceChanged();
-      setNotice("Saved to wishlist ♥");
-    } catch (err) {
-      showApiError(err, "Could not save to wishlist.");
-    } finally {
-      setBusy(null);
+    } catch {
+      // ignore
     }
   }
 
-  async function onOpenConversation() {
-    setError(null);
-    setNotice(null);
-    if (!tokenStore.get()) {
-      router.push("/login");
-      return;
-    }
-
-    setBusy("chat");
-    try {
-      const response = await openListingConversation(product._id);
-      router.push(`/conversations/${response.conversation._id}`);
-    } catch (err) {
-      showApiError(err, "Could not open the listing conversation.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onSubmitReport(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setNotice(null);
-    if (!tokenStore.get()) {
-      router.push("/login");
-      return;
-    }
-    if (reportDetails.trim().length < 20) {
-      setError("Please explain the problem in at least 20 characters.");
-      return;
-    }
-    setBusy("report");
-    try {
-      const response = await reportProduct(product._id, reportReason, reportDetails.trim());
-      setReported(true);
-      setReportOpen(false);
-      setReportDetails("");
-      setNotice(response.message);
-    } catch (err) {
-      showApiError(err, "Could not submit this report.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onSubmitOffer(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!requireAuthOrSelection()) return;
-    const numericPrice = Number(offerPrice);
-    if (!numericPrice || numericPrice <= 0) {
-      setError("Please enter a valid offer price.");
-      return;
-    }
-
-    setBusy("offer");
-    try {
-      await createOffer({
-        productId: product._id,
-        price: numericPrice,
-        ...(selections.length ? { variantSelections: selections } : {}),
-      });
-      setOfferOpen(false);
-      setOfferPrice("");
-      setNotice("Price Am offer submitted to seller! You will be notified when they accept or counter.");
-      router.push("/offers?tab=buyer");
-    } catch (err) {
-      showApiError(err, "Could not submit Price Am offer.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  function applyPresetDiscount(percent: number) {
-    const discounted = Math.round(displayPrice * (1 - percent / 100));
-    setOfferPrice(String(discounted));
-  }
+  const isJersey = product.category === "club-jerseys" || product.category === "national-teams" || product.category === "retro-classics";
 
   return (
     <div className="space-y-5">
-      {/* CARD 1: Price, Status & Price Am Offer */}
-      <div className="rounded-3xl border border-line bg-surface p-6 shadow-soft space-y-5">
-        {/* Price & Stock Display */}
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
+      {/* CARD 1: Price & Kit Configuration */}
+      <div className="rounded-3xl border border-line bg-surface p-6 shadow-soft space-y-6">
+        {/* Top: Price and Stock status */}
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line/60 pb-5">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs uppercase tracking-wider text-muted font-bold block">Price</span>
-              {product.negotiable !== false && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary-soft text-primary text-[11px] font-bold">
-                  Negotiable
-                </span>
-              )}
-            </div>
-            <div className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
-              ₦{displayPrice.toLocaleString()}
+            <span className="text-xs font-bold uppercase tracking-wider text-muted block mb-1">
+              Store Price
+            </span>
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl sm:text-4xl font-black text-ink tracking-tight">
+                PKR {displayPrice.toLocaleString()}
+              </span>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                In Stock &amp; Ready to Ship
+              </span>
             </div>
           </div>
-          <div className="text-right">
-            {inStock ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-semibold text-success border border-success/20">
-                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                In stock ({availableStock} left)
-              </span>
-            ) : (
-              <span className="inline-flex items-center rounded-full bg-danger/10 px-3 py-1 text-xs font-semibold text-danger border border-danger/20">
-                {allSelected ? "Out of stock" : "Select options"}
-              </span>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={handleToggleWishlist}
+            className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
+              savedToWishlist
+                ? "bg-primary-soft text-primary border-primary"
+                : "border-line text-muted hover:border-primary hover:text-primary"
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${savedToWishlist ? "fill-primary" : ""}`} />
+            <span>{savedToWishlist ? "Saved" : "Save for later"}</span>
+          </button>
         </div>
 
-        {/* Variant selection */}
-        {hasVariants && (
-          <div className="pt-4 border-t border-line space-y-4">
-            {product.variants.map((v) => (
-              <div key={v.name}>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-2">
-                  {v.name}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {v.options.map((o) => {
-                    const active = selected[v.name] === o.value;
-                    const out = o.stock <= 0;
-                    return (
-                      <button
-                        key={o.value}
-                        type="button"
-                        disabled={out}
-                        onClick={() =>
-                          setSelected((s) => ({ ...s, [v.name]: o.value }))
-                        }
-                        className={`rounded-xl border px-3.5 py-1.5 text-xs font-medium transition-all ${
-                          active
-                            ? "border-primary bg-primary text-white shadow-soft"
-                            : out
-                              ? "border-line text-muted line-through opacity-50 cursor-not-allowed bg-sunken"
-                              : "border-line text-body hover:border-primary hover:text-primary bg-surface"
-                        }`}
-                      >
-                        {o.value} · ₦{o.price.toLocaleString()}
-                      </button>
-                    );
-                  })}
-                </div>
+        {/* Variants Selector (Size, Printing, etc.) */}
+        {product.variants.map((variant) => (
+          <div key={variant.name} className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-ink">
+                Select {variant.name}
+              </span>
+              <span className="text-xs font-semibold text-primary">
+                {selectedVariants[variant.name]}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {variant.options.map((option) => {
+                const active = selectedVariants[variant.name] === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() =>
+                      setSelectedVariants((prev) => ({ ...prev, [variant.name]: option.value }))
+                    }
+                    className={`rounded-xl px-3.5 py-2 text-xs font-extrabold transition-all ${
+                      active
+                        ? "bg-ink text-white ring-2 ring-primary ring-offset-2 ring-offset-surface shadow-xs"
+                        : "border border-line bg-cream/50 text-body hover:border-primary/50 hover:bg-surface"
+                    }`}
+                  >
+                    {option.value}
+                    {option.price > product.price && (
+                      <span className="ml-1 text-[10px] text-accent-dark">
+                        (+PKR {(option.price - product.price).toLocaleString()})
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {/* Custom Name & Number Printing drawer for Jerseys */}
+        {isJersey && (
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-xs font-black uppercase tracking-wider text-ink">
+                Custom Name &amp; Number Printing (Optional)
+              </span>
+            </div>
+            <p className="text-[11px] text-body leading-relaxed">
+              Want your own name on the back? Enter details below (official club/league heat-applied font):
+            </p>
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="col-span-2">
+                <input
+                  type="text"
+                  maxLength={14}
+                  placeholder="e.g. YOUR NAME"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  className="w-full h-10 rounded-xl border border-line bg-surface px-3 text-xs font-bold uppercase text-ink placeholder:normal-case placeholder:font-normal placeholder:text-muted focus:border-primary focus:outline-none"
+                />
               </div>
-            ))}
+              <div>
+                <input
+                  type="text"
+                  maxLength={2}
+                  placeholder="NO. (e.g. 7)"
+                  value={customNumber}
+                  onChange={(e) => setCustomNumber(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full h-10 rounded-xl border border-line bg-surface px-3 text-xs font-bold text-center text-ink placeholder:font-normal placeholder:text-muted focus:border-primary focus:outline-none"
+                />
+              </div>
+            </div>
           </div>
         )}
 
-        {error && <div><Alert kind="error">{error}</Alert></div>}
-        {notice && <div><Alert kind="success">{notice}</Alert></div>}
-
-        {/* Hero Price Am Negotiation CTA */}
-        <button
-          type="button"
-          disabled={!inStock || busy !== null}
-          onClick={() => {
-            setError(null);
-            setNotice(null);
-            setOfferOpen(true);
-          }}
-          className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-primary-light to-accent p-0.5 shadow-soft hover:shadow-glow transition-all active:scale-[0.99] disabled:opacity-50"
-        >
-          <div className="flex h-14 items-center justify-between rounded-[14px] bg-gradient-to-r from-primary to-primary-dark px-5 text-white">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-xs">
-                <Handshake className="h-5 w-5" />
-              </span>
-              <div className="text-left">
-                <span className="text-base font-extrabold tracking-wide uppercase block">Price Am</span>
-                <span className="text-[11px] text-white/80 font-medium block">Make an offer / Negotiate price</span>
-              </div>
-            </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3.5 py-1 text-xs font-bold text-white tracking-wide">
-              <Sparkles className="h-3.5 w-3.5 text-accent" />
-              Make Offer
-            </span>
-          </div>
-        </button>
-      </div>
-
-      {/* CARD 2: Merchant & Seller Contact Card (Matches Reference Screenshot) */}
-      <div className="rounded-3xl border border-line bg-surface p-5 sm:p-6 shadow-soft space-y-4">
-        {/* Top: Avatar + Store Name + Badges */}
-        <div className="flex items-start gap-3.5">
-          {/* Avatar (Stylized Hexagon / Rounded with emerald accent) */}
-          <div className="relative h-15 w-15 sm:h-16 sm:w-16 shrink-0 rounded-2xl overflow-hidden border-2 border-emerald-500/40 bg-sunken shadow-soft flex items-center justify-center">
-            {sellerAvatar ? (
-              <img
-                src={assetUrl(sellerAvatar)}
-                alt={displayStoreName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-800 text-white font-black text-xl">
-                {displayStoreName.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-
-          {/* Info Details */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {product.storeSlug ? (
-                <Link
-                  href={`/store/${product.storeSlug}`}
-                  className="font-black text-base sm:text-lg text-ink hover:text-primary transition-colors truncate"
-                >
-                  {displayStoreName}
-                </Link>
-              ) : (
-                <h3 className="font-black text-base sm:text-lg text-ink truncate">{displayStoreName}</h3>
-              )}
-            </div>
-
-            {/* One highest-value trust state; lower states are implied. */}
-            <div className="flex flex-wrap items-center gap-1.5 mt-1">
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[11px] font-bold ${sellerTrustBadge.className}`}>
-                <SellerTrustIcon className="h-3 w-3" />
-                {sellerTrustBadge.label}
-              </span>
-            </div>
-
-            {/* Seller tenure */}
-            <div className="flex items-center gap-1.5 text-[11px] text-muted mt-1.5 font-medium">
-              <Clock className="h-3 w-3 text-primary" />
-              <span>{formatSellerTenure(product.sellerJoinedAt || product.createdAt)}</span>
-            </div>
+        {/* Quantity Selector */}
+        <div className="flex items-center justify-between border-t border-line/60 pt-4">
+          <span className="text-xs font-bold uppercase tracking-wider text-ink">Quantity</span>
+          <div className="flex items-center gap-2 rounded-xl border border-line bg-surface p-1">
+            <button
+              type="button"
+              disabled={quantity <= 1}
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="h-8 w-8 rounded-lg text-ink hover:bg-sunken font-bold disabled:opacity-40"
+            >
+              -
+            </button>
+            <span className="w-8 text-center text-sm font-black text-ink">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              className="h-8 w-8 rounded-lg text-ink hover:bg-sunken font-bold"
+            >
+              +
+            </button>
           </div>
         </div>
 
-        {/* Public listings keep communication inside PriceAm chat. */}
+        {notice && <Alert kind="success">{notice}</Alert>}
+
+        {/* CTAs: Add to Cart and Buy Now */}
         <div className="space-y-2.5 pt-1">
           <button
             type="button"
-            disabled={busy !== null}
-            onClick={onOpenConversation}
-            className="w-full h-12 rounded-2xl border-2 border-[#00b53f] hover:bg-emerald-50 text-[#00b53f] font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50"
+            disabled={busy}
+            onClick={() => handleAddToCart(false)}
+            className={`w-full h-13 rounded-2xl flex items-center justify-center gap-2 font-black text-sm tracking-wide shadow-soft transition-all active:scale-[0.99] ${
+              added
+                ? "bg-emerald-600 text-white"
+                : "bg-primary hover:bg-primary-dark text-white"
+            }`}
           >
-            <MessageSquare className="h-4.5 w-4.5" />
-            <span>{busy === "chat" ? "Opening conversation…" : "Start chat"}</span>
+            <ShoppingBag className="h-4.5 w-4.5" />
+            <span>{added ? "Item Added to Cart!" : "Add to Shopping Cart"}</span>
           </button>
-        </div>
 
-        {/* Footer Actions (Matches screenshot: Wishlist & Report Abuse) */}
-        <div className="pt-2 border-t border-line flex items-center justify-between text-xs font-semibold text-muted px-1">
           <button
             type="button"
-            onClick={onWishlist}
-            disabled={busy !== null}
-            className="inline-flex items-center gap-1.5 text-muted hover:text-primary transition-colors"
+            disabled={busy}
+            onClick={() => handleAddToCart(true)}
+            className="w-full h-13 rounded-2xl bg-ink hover:bg-ink-900 text-white flex items-center justify-center gap-2 font-black text-sm tracking-wide shadow-soft transition-all active:scale-[0.99]"
           >
-            <Heart className={`h-4 w-4 ${savedToWishlist ? "fill-primary text-primary" : ""}`} />
-            <span>{savedToWishlist ? "Saved in Wishlist" : "Save for later"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (!tokenStore.get()) router.push("/login");
-              else setReportOpen(true);
-            }}
-            disabled={reported || busy !== null}
-            className="inline-flex items-center gap-1.5 text-danger/80 hover:text-danger transition-colors"
-          >
-            <Flag className="h-3.5 w-3.5" />
-            <span>{reported ? "Reported" : "Report Abuse"}</span>
+            <span>Instant Checkout</span>
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {reportOpen && (
-        <div className="fixed inset-0 z-60 flex items-end justify-center bg-ink/60 px-0 sm:items-center sm:px-4" role="dialog" aria-modal="true" aria-labelledby="report-listing-title" onClick={() => setReportOpen(false)}>
-          <form onSubmit={onSubmitReport} className="w-full max-w-lg rounded-t-3xl border border-line bg-surface p-5 shadow-2xl sm:rounded-3xl sm:p-6" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 id="report-listing-title" className="text-xl font-black text-ink">Report this listing</h2>
-                <p className="mt-1 text-sm text-muted">Tell our safety team exactly what is wrong. Reports are reviewed by an administrator.</p>
-              </div>
-              <button type="button" onClick={() => setReportOpen(false)} aria-label="Close report form" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-sunken hover:text-ink"><X className="h-5 w-5" /></button>
-            </div>
-            <label className="mt-5 block text-sm font-bold text-ink" htmlFor="report-reason">Reason</label>
-            <select id="report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value as ProductReportReason)} className="mt-2 h-12 w-full rounded-2xl border border-line bg-surface px-4 text-base text-ink focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15">
-              <option value="suspected_scam">Suspected scam or fraud</option>
-              <option value="misleading_listing">Misleading description or photos</option>
-              <option value="counterfeit_item">Counterfeit or fake item</option>
-              <option value="prohibited_item">Prohibited item</option>
-              <option value="already_sold">Already sold or unavailable</option>
-              <option value="other">Other safety concern</option>
-            </select>
-            <label className="mt-4 block text-sm font-bold text-ink" htmlFor="report-details">What happened?</label>
-            <textarea id="report-details" required minLength={20} maxLength={1000} value={reportDetails} onChange={(event) => setReportDetails(event.target.value)} placeholder="Describe the issue and include any useful facts for the reviewer." className="mt-2 min-h-32 w-full resize-y rounded-2xl border border-line bg-surface p-4 text-base text-ink placeholder:text-muted focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15" />
-            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Button type="button" variant="outline" onClick={() => setReportOpen(false)} className="min-h-11">Cancel</Button>
-              <Button type="submit" loading={busy === "report"} className="min-h-11 sm:min-w-40">Submit report</Button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* CARD 3: Safety Warning Banner */}
-      <div className="rounded-2xl border border-warning/40 bg-warning/10 p-3.5 flex items-start gap-2.5 text-xs text-ink leading-relaxed">
-        <ShieldAlert className="h-4.5 w-4.5 text-warning shrink-0 mt-0.5" />
-        <div>
-          <strong className="font-bold text-ink">Safety Warning: </strong>
-          Never pay in advance. PriceAm is not involved in financial transactions. Inspect the item thoroughly before making payment directly to the seller. Report any fraudulent sellers immediately.
-        </div>
-      </div>
-
-      {/* "Price Am" Negotiation Modal */}
-      {offerOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xs px-4"
-          onClick={() => setOfferOpen(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-3xl bg-surface p-6 shadow-2xl relative border border-line animate-fade-in-up"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setOfferOpen(false)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-sunken hover:text-ink transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            {/* Modal Header */}
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white shadow-soft">
-                <Handshake className="h-5 w-5" strokeWidth={2} />
-              </span>
-              <div>
-                <h2 className="text-xl font-extrabold text-ink">Price Am (Make an Offer)</h2>
-                <p className="text-xs text-muted">Make a numeric offer to the seller</p>
-              </div>
-            </div>
-
-            {/* Product summary card */}
-            <div className="mt-4 rounded-2xl border border-line bg-sunken/60 p-3.5 flex items-center justify-between">
-              <div className="truncate pr-2">
-                <p className="text-xs text-muted font-medium truncate">{product.title}</p>
-                <p className="text-sm font-bold text-ink">
-                  Listed Price: ₦{displayPrice.toLocaleString()}
-                </p>
-              </div>
-              <span className="rounded-full bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 shrink-0">
-                Official Listing
-              </span>
-            </div>
-
-            {/* Discount preset chips */}
-            <div className="mt-4">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-2">
-                Quick Discount Presets
-              </label>
-              <div className="grid grid-cols-4 gap-2">
-                {[5, 10, 15, 20].map((pct) => {
-                  const calculatedPrice = Math.round(displayPrice * (1 - pct / 100));
-                  const isSelected = Number(offerPrice) === calculatedPrice;
-                  return (
-                    <button
-                      key={pct}
-                      type="button"
-                      onClick={() => applyPresetDiscount(pct)}
-                      className={`flex flex-col items-center justify-center rounded-xl border py-2 px-1 text-xs transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary/10 text-primary shadow-xs ring-2 ring-primary/20 font-bold"
-                          : "border-line bg-surface hover:border-primary/50 hover:bg-primary-soft/20 text-ink font-semibold"
-                      }`}
-                    >
-                      <span className="text-[10px] text-primary flex items-center gap-0.5 font-bold">
-                        <TrendingDown className="h-3 w-3" /> -{pct}%
-                      </span>
-                      <span className="text-[11px] sm:text-xs font-black tracking-tight mt-0.5 truncate max-w-full">
-                        ₦{calculatedPrice.toLocaleString()}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Price Form */}
-            <form onSubmit={onSubmitOffer} className="mt-5 space-y-4">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-ink block mb-1.5">
-                  Enter Your Proposed Price (₦)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-primary">
-                    ₦
-                  </span>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    min="100"
-                    step="any"
-                    required
-                    autoFocus
-                    value={offerPrice}
-                    onChange={(e) => setOfferPrice(e.target.value)}
-                    placeholder={String(Math.round(displayPrice * 0.9))}
-                    className="h-14 pl-10 text-xl font-extrabold text-ink rounded-2xl border-line-strong focus:border-primary focus:ring-4 focus:ring-primary/20"
-                  />
-                </div>
-              </div>
-
-              {/* Rules banner */}
-              <div className="rounded-xl bg-sunken p-3 text-[11px] text-body leading-relaxed border border-line">
-                <strong className="text-ink font-semibold">How Price Am works: </strong>
-                Your offer is strictly numeric. The seller can accept your price or propose a counter-offer. Once agreed, you can click &quot;Buy&quot; to open the Transaction Chat.
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button
-                  type="submit"
-                  size="lg"
-                  full
-                  disabled={busy === "offer"}
-                  loading={busy === "offer"}
-                  className="rounded-2xl bg-primary text-white font-bold"
-                >
-                  Send Price Am Offer
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => setOfferOpen(false)}
-                  className="rounded-2xl"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
+      {/* CARD 2: Direct Shop Specialist & Quick Inquiry */}
+      <div className="rounded-3xl border border-line bg-surface p-5 sm:p-6 shadow-soft space-y-4">
+        <div className="flex items-center gap-3.5">
+          <div className="relative h-13 w-13 shrink-0 rounded-2xl overflow-hidden border border-primary/30 bg-ink flex items-center justify-center text-white font-black text-lg">
+            ⚽
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-black text-base text-ink">Football Wears Pro Store</h3>
+            <p className="text-xs text-muted flex items-center gap-1.5 mt-0.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Curated &amp; Dispatched by Hamad
+            </p>
           </div>
         </div>
-      )}
+
+        <p className="text-xs text-body leading-relaxed">
+          Need sizing help or custom team kit orders? Message the shop specialist directly:
+        </p>
+
+        <a
+          href="https://wa.me/2348031234567?text=Hello%2C%20I%20am%20inquiring%20about%20the%20football%20kit%20on%20Football%20Wears"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full h-11 rounded-2xl border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+        >
+          <MessageCircle className="h-4 w-4 text-emerald-600" />
+          <span>WhatsApp Quick Inquiry (+234 803 123 4567)</span>
+        </a>
+      </div>
+
+      {/* CARD 3: Authentic Guarantee Badges */}
+      <div className="rounded-3xl border border-line bg-sunken/60 p-5 space-y-3 text-xs text-body">
+        <div className="flex items-center gap-2.5 font-bold text-ink">
+          <Award className="h-4.5 w-4.5 text-primary shrink-0" />
+          <span>100% Guaranteed Authentic Football Gear</span>
+        </div>
+        <div className="flex items-center gap-2.5 font-bold text-emerald-800">
+          <Banknote className="h-4.5 w-4.5 text-emerald-600 shrink-0" />
+          <span>Cash on Delivery (COD) Available Nationwide</span>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <Truck className="h-4.5 w-4.5 text-primary shrink-0" />
+          <span>Fast Tracked Dispatch across Nigeria (24h - 48h)</span>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <RefreshCw className="h-4.5 w-4.5 text-primary shrink-0" />
+          <span>14-Day Free Size &amp; Fit Exchange Guarantee</span>
+        </div>
+      </div>
     </div>
   );
 }

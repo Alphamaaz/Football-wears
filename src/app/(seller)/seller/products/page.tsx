@@ -131,18 +131,18 @@ function SellerProductsList() {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight mt-0.5">
-            Store Listings
+            Store Inventory &amp; Products
           </h1>
           <p className="text-xs sm:text-sm text-muted mt-1">
-            Manage product prices, Price Am limits, and inventory.
+            Manage your personal football shop products, stock levels, and kit pricing.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link href="/seller">
+          <Link href="/admin">
             <Button variant="outline" size="md" className="rounded-xl px-4 font-bold">
               <Store className="h-4 w-4 mr-1 text-primary" />
-              Seller Dashboard
+              Admin Dashboard
             </Button>
           </Link>
           <Link href="/seller/products/new">
@@ -299,12 +299,12 @@ function SellerProductsList() {
 
                     <div className="flex flex-wrap items-baseline gap-2 text-xs">
                       <span className="font-black text-ink text-sm sm:text-base">
-                        ₦{p.price.toLocaleString()}
+                        PKR {p.price.toLocaleString()}
                       </span>
                       {hasMinPrice && (
                         <span className="inline-flex items-center gap-1 rounded-md bg-accent/20 px-2 py-0.5 text-[10px] font-bold text-ink border border-accent/30">
                           <Handshake className="h-3 w-3 text-primary" />
-                          Price Am Floor: ₦{p.minPrice!.toLocaleString()}
+                          Floor Price: PKR {p.minPrice!.toLocaleString()}
                         </span>
                       )}
                       <span className="text-muted">· Stock: {p.stock} units</span>

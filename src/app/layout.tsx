@@ -10,25 +10,25 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: {
-    default: "PriceAm — Negotiate the price, not the experience",
-    template: "%s · PriceAm",
+    default: "Football Wears — Official Football Kits, Boots & Retro Classics",
+    template: "%s · Football Wears",
   },
   description:
-    "Nigeria's negotiation-first marketplace. Find items near you, make a numeric offer, agree on a price, and connect directly with the seller.",
+    "Official store for authentic club football shirts, national team kits, legendary retro classics, pro boots, and custom player font printing with Cash on Delivery nationwide.",
   manifest: "/site.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
     apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fff7f0",
+  themeColor: "#064e3b",
 };
 
 export default function RootLayout({

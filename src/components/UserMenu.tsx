@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LayoutDashboard, LogOut, MessageCircle, Store, User as UserIcon } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, MessageCircle, Package, PlusCircle, ShieldCheck, Store, User as UserIcon } from "lucide-react";
 import { getMe, logout } from "@/lib/auth";
 import { assetUrl, tokenStore } from "@/lib/api";
 import type { User } from "@/lib/types";
@@ -67,18 +67,12 @@ export function UserMenu() {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2 ml-1">
+      <div className="flex items-center ml-1">
         <Link
           href="/login"
-          className="text-sm font-medium text-ink hover:text-primary px-3 py-2"
+          className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-ink hover:text-primary border border-line bg-surface rounded-full px-4 h-9 shadow-xs hover:border-primary transition-all"
         >
-          Log in
-        </Link>
-        <Link
-          href="/register"
-          className="text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-full px-4 h-9 flex items-center shadow-soft transition-colors"
-        >
-          Sign up
+          <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin Login
         </Link>
       </div>
     );
@@ -119,59 +113,69 @@ export function UserMenu() {
             <p className="text-sm font-semibold text-ink truncate">{user.fullName}</p>
             <p className="text-xs text-muted truncate">{user.email}</p>
           </div>
-          {!isAdmin && <Link
-              href="/conversations"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
-            >
-              <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
-              Messages
-            </Link>}
-          {isAdmin && <Link
-            href="/admin"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
-          >
-            <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} />
-            Admin dashboard
-          </Link>}
-          <Link
-            href="/profile"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
-          >
-            <UserIcon className="h-4 w-4" strokeWidth={1.75} />
-            My profile
-          </Link>
-          {!isAdmin && isSeller ? (
+          {isAdmin ? (
             <>
               <Link
-                href="/seller"
+                href="/admin"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink font-semibold"
+                className="flex items-center gap-2.5 px-4 py-2 text-sm text-ink hover:bg-sunken font-bold"
               >
-                <Store className="h-4 w-4 text-primary" strokeWidth={1.75} />
-                Seller Dashboard
+                <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={2} />
+                Admin Dashboard
+              </Link>
+              <Link
+                href="/seller/products/new"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2 text-sm text-primary hover:bg-primary-soft/50 font-extrabold"
+              >
+                <PlusCircle className="h-4 w-4 text-primary" strokeWidth={2} />
+                Upload New Product
               </Link>
               <Link
                 href="/seller/products"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
               >
+                <Package className="h-4 w-4" strokeWidth={1.75} />
+                Manage Products
+              </Link>
+              <Link
+                href="/orders"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
+              >
                 <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} />
-                Manage Listings
+                Store Orders (COD)
+              </Link>
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
+              >
+                <UserIcon className="h-4 w-4" strokeWidth={1.75} />
+                Store Settings
               </Link>
             </>
-          ) : !isAdmin ? (
-            <Link
-              href="/seller/onboarding"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
-            >
-              <Store className="h-4 w-4" strokeWidth={1.75} />
-              Become a seller
-            </Link>
-          ) : null}
+          ) : (
+            <>
+              <Link
+                href="/orders"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
+              >
+                <Package className="h-4 w-4" strokeWidth={1.75} />
+                My Orders
+              </Link>
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2 text-sm text-body hover:bg-sunken hover:text-ink"
+              >
+                <UserIcon className="h-4 w-4" strokeWidth={1.75} />
+                My Profile
+              </Link>
+            </>
+          )}
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-danger hover:bg-danger-soft mt-1"

@@ -17,12 +17,11 @@ import {
   UserRound,
 } from "lucide-react";
 
-const links = [
-  { href: "/seller", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/seller/products", label: "Listings", icon: Package },
-  { href: "/offers?tab=seller", label: "Price Am offers", icon: Handshake },
-  { href: "/orders", label: "Agreed deals", icon: BarChart3 },
-  { href: "/conversations", label: "Messages", icon: MessageCircle },
+const links: Array<{ href: string; label: string; icon: any; exact?: boolean }> = [
+  { href: "/admin", label: "Admin Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/seller/products/new", label: "Upload New Product", icon: Plus },
+  { href: "/seller/products", label: "Products & Stock", icon: Package },
+  { href: "/orders", label: "Customer Orders (COD)", icon: BarChart3 },
 ];
 
 export function SellerWorkspaceNav() {
@@ -40,8 +39,8 @@ export function SellerWorkspaceNav() {
               <Store className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-extrabold text-ink">Seller workspace</p>
-              <p className="text-[11px] text-muted">Run your PriceAm store</p>
+              <p className="text-sm font-extrabold text-ink">Shop Admin</p>
+              <p className="text-[11px] text-muted">Football Wears Store</p>
             </div>
           </div>
         </div>
@@ -73,21 +72,21 @@ export function SellerWorkspaceNav() {
       </aside>
 
       <nav className="seller-mobile-nav md:hidden" aria-label="Seller navigation">
-        <Link href="/seller" className={pathname === "/seller" ? "is-active" : ""}>
+        <Link href="/admin" className={pathname === "/admin" ? "is-active" : ""}>
           <LayoutDashboard />
           <span>Dashboard</span>
         </Link>
-        <Link href="/conversations" className={pathname.startsWith("/conversations") ? "is-active" : ""}>
-          <MessageCircle />
-          <span>Chat</span>
+        <Link href="/seller/products/new" className={pathname === "/seller/products/new" ? "is-active" : ""}>
+          <CirclePlus />
+          <span>Upload</span>
         </Link>
         <Link href="/" className="seller-mobile-switch">
           <span className="seller-mobile-switch-icon"><Home /></span>
-          <span>Switch to Buy</span>
+          <span>Store</span>
         </Link>
-        <Link href="/seller/products/new" className={pathname === "/seller/products/new" ? "is-active" : ""}>
-          <CirclePlus />
-          <span>Sell</span>
+        <Link href="/seller/products" className={pathname === "/seller/products" ? "is-active" : ""}>
+          <Package />
+          <span>Inventory</span>
         </Link>
         <Link href="/profile" className={pathname.startsWith("/profile") ? "is-active" : ""}>
           <UserRound />

@@ -30,9 +30,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const product = await getProductServer(id);
-  if (!product) return { title: "Listing Not Found · PriceAm" };
+  if (!product) return { title: "Kit Not Found · Football Wears" };
   return {
-    title: `${product.title} · ₦${product.price.toLocaleString()} · PriceAm Nigeria`,
+    title: `${product.title} · PKR ${product.price.toLocaleString()} · Football Wears Pro Shop`,
     description: product.description.slice(0, 160),
   };
 }
@@ -138,51 +138,71 @@ export default async function ProductDetailPage({
           <section className="rounded-3xl border border-line bg-surface p-6 shadow-soft space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-ink flex items-center gap-2">
               <Tag className="h-4 w-4 text-primary" />
-              Listing Specifications &amp; Overview
+              Kit &amp; Gear Specifications
             </h2>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-              <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
-                <span className="text-[10px] font-bold uppercase text-muted">Condition</span>
-                <div className="font-extrabold text-ink capitalize flex items-center gap-1">
-                  <span>{product.condition === "new" ? "Brand New (Sealed)" : "Pre-Owned"}</span>
+              {product.club && (
+                <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-muted">Club / Team</span>
+                  <div className="font-extrabold text-ink truncate">{product.club}</div>
                 </div>
-              </div>
+              )}
 
-              <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
-                <span className="text-[10px] font-bold uppercase text-muted">Location</span>
-                <div className="font-extrabold text-ink truncate">{locationText}</div>
-              </div>
-
-              <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
-                <span className="text-[10px] font-bold uppercase text-muted">Price Am Status</span>
-                <div className="font-extrabold text-primary flex items-center gap-1">
-                  <Handshake className="h-3.5 w-3.5" />
-                  <span>{product.negotiable !== false ? "Negotiable" : "Fixed Price"}</span>
+              {product.country && (
+                <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-muted">Country</span>
+                  <div className="font-extrabold text-ink truncate">{product.country}</div>
                 </div>
-              </div>
+              )}
+
+              {product.player && (
+                <div className="rounded-2xl bg-primary-soft/60 p-3.5 border border-primary/20 space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-primary">Player Edition</span>
+                  <div className="font-extrabold text-primary truncate">{product.player}</div>
+                </div>
+              )}
+
+              {product.edition && (
+                <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-muted">Edition &amp; Version</span>
+                  <div className="font-extrabold text-ink truncate">{product.edition}</div>
+                </div>
+              )}
+
+              {product.badge && (
+                <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-muted">Sleeve Badges</span>
+                  <div className="font-extrabold text-ink truncate">{product.badge}</div>
+                </div>
+              )}
 
               {product.brand && (
                 <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-muted">Brand</span>
+                  <span className="text-[10px] font-bold uppercase text-muted">Manufacturer</span>
                   <div className="font-extrabold text-ink">{product.brand}</div>
                 </div>
               )}
 
-              {product.warranty && (
+              {product.colorway && (
                 <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-muted">Warranty</span>
-                  <div className="font-extrabold text-success flex items-center gap-1">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    <span>{product.warranty}</span>
-                  </div>
+                  <span className="text-[10px] font-bold uppercase text-muted">Official Colorway</span>
+                  <div className="font-extrabold text-ink truncate">{product.colorway}</div>
                 </div>
               )}
 
               <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
+                <span className="text-[10px] font-bold uppercase text-muted">Condition</span>
+                <div className="font-extrabold text-emerald-700 capitalize flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>100% Brand New (Tags On)</span>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-sunken/60 p-3.5 border border-line space-y-1">
                 <span className="text-[10px] font-bold uppercase text-muted">Stock Availability</span>
                 <div className="font-extrabold text-ink">
-                  {product.stock > 0 ? `${product.stock} units available` : "Out of stock"}
+                  {product.stock > 0 ? `${product.stock} units in dispatch hub` : "Out of stock"}
                 </div>
               </div>
             </div>
@@ -270,16 +290,29 @@ export default async function ProductDetailPage({
             enabled={Boolean(product.promotion?.enabled)}
           />
 
-          {/* Safety & Direct Peer-to-Peer Advisory */}
-          <div className="rounded-2xl border border-line bg-sunken/50 p-4 space-y-2 text-xs text-muted">
-            <div className="flex items-center gap-2 font-bold text-ink">
-              <ShieldAlert className="h-4 w-4 text-amber-500" />
-              <span>PriceAm Safety Advisory</span>
+          {/* Football Wears Authenticity & Service Promise */}
+          <div className="rounded-3xl border border-line bg-surface p-5 space-y-3.5 shadow-soft">
+            <div className="flex items-center gap-2 font-black text-ink text-sm">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <span>Football Wears Authenticity Promise</span>
             </div>
-            <ul className="space-y-1 list-disc list-inside text-[11px] leading-relaxed">
-              <li>Inspect items thoroughly upon delivery before confirming receipt.</li>
-              <li>Keep all payment &amp; waybill receipts logged in the Transaction Chat.</li>
-              <li>PriceAm Dispute Arbitration is available for all registered transactions.</li>
+            <ul className="space-y-2 text-xs text-muted leading-relaxed">
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                <span><strong className="text-ink">100% Licensed &amp; Authentic:</strong> Sourced directly with original manufacturer barcodes and tags.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                <span><strong className="text-ink">Official Name &amp; Number Fonts:</strong> Match-spec player printing and authentic competition sleeve badges.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                <span><strong className="text-ink">14-Day Size Exchange:</strong> Hassle-free size swaps if the jersey or boot fit isn&apos;t exact.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                <span><strong className="text-ink">Fast Tracked Shipping:</strong> Dispatched in heavy-duty protective kit sleeves within 24–48 hours.</span>
+              </li>
             </ul>
           </div>
         </div>

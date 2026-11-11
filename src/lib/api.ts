@@ -40,11 +40,13 @@ const LEGACY_IMAGE_REPLACEMENTS: Record<string, string> = {
     "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1200&q=85",
 };
 
-/** Resolve backend-relative image paths (/uploads/…) to absolute URLs. */
+/** Resolve image paths to URLs (keeping Next.js static assets relative to domain). */
 export function assetUrl(path: string): string {
+  if (!path) return "/kits/real-madrid-2025-home.jpg";
   const replacement = LEGACY_IMAGE_REPLACEMENTS[path];
   if (replacement) return replacement;
-  return path.startsWith("/") ? `${ASSET_URL}${path}` : path;
+  if (path.startsWith("/")) return path;
+  return path;
 }
 
 const ACCESS_TOKEN_KEY = "pricem_access_token";

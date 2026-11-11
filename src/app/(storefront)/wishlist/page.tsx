@@ -31,11 +31,10 @@ import { Button } from "@/components/ui";
 import { useAppDialog } from "@/components/AppDialogProvider";
 
 const CATEGORY_LINKS = [
-  { id: "electronics", label: "Electronics", icon: Headphones },
-  { id: "fashion", label: "Fashion", icon: Shirt },
-  { id: "home", label: "Home", icon: HomeIcon },
-  { id: "gaming", label: "Gaming", icon: Gamepad2 },
-  { id: "other", label: "General Goods", icon: Sparkles },
+  { id: "club-jerseys", label: "Club Kits", icon: Shirt },
+  { id: "national-teams", label: "National Teams", icon: Sparkles },
+  { id: "retro-classics", label: "Retro Classics", icon: Sparkles },
+  { id: "football-boots", label: "Boots & Cleats", icon: PackageOpen },
 ];
 
 export default function WishlistPage() {
@@ -54,15 +53,11 @@ export default function WishlistPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
-    if (!tokenStore.get()) {
-      router.replace("/login");
-      return;
-    }
     getWishlist()
       .then((res) => setWishlist(res.wishlist))
-      .catch(() => router.replace("/login"))
+      .catch(() => {})
       .finally(() => setLoading(false));
-  }, [router]);
+  }, []);
 
   function showSuccess(msg: string) {
     setSuccessMsg(msg);
@@ -192,7 +187,7 @@ export default function WishlistPage() {
             Your Wishlist is Empty
           </h1>
           <p className="text-xs sm:text-sm text-muted leading-relaxed">
-            Bookmark listings you love across Nigeria. When you&apos;re ready, submit a direct <strong>Price Am</strong> offer to negotiate your ideal price.
+            Bookmark football kits and gear you love. When you&apos;re ready, checkout directly with fast Cash on Delivery across Nigeria.
           </p>
         </div>
 
@@ -259,7 +254,7 @@ export default function WishlistPage() {
             </h1>
 
             <p className="text-xs sm:text-sm text-body/80 leading-relaxed">
-              Track your favorite products, monitor price drops, and jump directly into <strong>Price Am</strong> to make direct offers.
+              Track your favorite football kits, boots, and gear, monitor availability, and add directly to cart with Cash on Delivery.
             </p>
           </div>
 
@@ -269,7 +264,7 @@ export default function WishlistPage() {
               <div className="text-right">
                 <span className="text-[11px] text-muted block">Estimated Total</span>
                 <strong className="text-base sm:text-lg font-black text-ink">
-                  ₦{totalValue.toLocaleString()}
+                  PKR {totalValue.toLocaleString()}
                 </strong>
               </div>
               <div className="h-8 w-px bg-line" />
@@ -337,17 +332,6 @@ export default function WishlistPage() {
             }`}
           >
             All Saved ({allItems.length})
-          </button>
-          <button
-            onClick={() => setActiveFilter("negotiable")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              activeFilter === "negotiable"
-                ? "bg-primary text-white shadow-soft"
-                : "text-ink hover:bg-sunken/60"
-            }`}
-          >
-            <Handshake className="h-3 w-3" />
-            Price Am Only ({negotiableCount})
           </button>
           <button
             onClick={() => setActiveFilter("instock")}
@@ -456,13 +440,7 @@ export default function WishlistPage() {
                       <Heart className="h-4 w-4 fill-danger" />
                     </button>
 
-                    {/* Bottom Negotiable Chip */}
-                    {isNegotiable && (
-                      <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-white/95 backdrop-blur px-2.5 py-0.5 text-[10px] font-black text-primary shadow-xs border border-line">
-                        <Handshake className="h-3 w-3 text-primary" strokeWidth={2.2} />
-                        Price Am
-                      </span>
-                    )}
+
                   </div>
 
                   {/* Body Content */}
@@ -487,7 +465,7 @@ export default function WishlistPage() {
                     {/* Price and Stock Row */}
                     <div className="flex items-baseline justify-between pt-1">
                       <span className="text-base sm:text-lg font-black text-ink">
-                        ₦{p.price.toLocaleString()}
+                        PKR {p.price.toLocaleString()}
                       </span>
                       <span
                         className={`text-[10px] font-bold ${
@@ -502,32 +480,16 @@ export default function WishlistPage() {
 
                 {/* Card Action Footer */}
                 <div className="p-3 pt-0 border-t border-line/50 mt-2 flex items-center gap-2">
-                  {/* Direct Price Am Negotiate Link */}
-                  {isNegotiable ? (
-                    <Link
-                      href={`/products/${p._id}?negotiate=1`}
-                      className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary/10 border border-primary/25 text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all shadow-xs"
-                      title="Name your price with numeric offer"
-                    >
-                      <Handshake className="h-3.5 w-3.5" />
-                      <span>Price Am</span>
-                    </Link>
-                  ) : null}
-
                   {/* Add to Cart Button */}
                   <button
                     type="button"
                     onClick={() => onAddToCart(p._id, p.variants.length > 0)}
                     disabled={busyId === p._id || !inStock}
-                    className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-all shadow-xs ${
-                      isNegotiable
-                        ? "bg-surface border border-line text-ink hover:border-primary hover:text-primary"
-                        : "flex-1 bg-primary text-white hover:bg-primary-dark"
-                    } disabled:opacity-40`}
+                    className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-all shadow-xs bg-primary text-white hover:bg-primary-dark disabled:opacity-40"
                     title={inStock ? "Add to cart" : "Out of stock"}
                   >
                     <ShoppingCart className="h-3.5 w-3.5" />
-                    <span>{p.variants.length > 0 ? "Options" : "Cart"}</span>
+                    <span>{p.variants.length > 0 ? "Select Options" : "Add to Cart"}</span>
                   </button>
                 </div>
               </article>
@@ -562,11 +524,6 @@ export default function WishlistPage() {
                       alt={p.coverImage.alt ?? p.title}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    {isNegotiable && (
-                      <span className="absolute bottom-1 right-1 rounded-md bg-white/90 px-1.5 py-0.2 text-[9px] font-black text-primary">
-                        ₦ Price Am
-                      </span>
-                    )}
                   </Link>
 
                   <div className="space-y-1 min-w-0">
@@ -588,29 +545,14 @@ export default function WishlistPage() {
 
                     <div className="flex items-baseline gap-2">
                       <span className="text-base sm:text-lg font-black text-ink">
-                        ₦{p.price.toLocaleString()}
+                        PKR {p.price.toLocaleString()}
                       </span>
-                      {isNegotiable && (
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.2 rounded-md">
-                          Negotiable
-                        </span>
-                      )}
                     </div>
                   </div>
                 </div>
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                  {isNegotiable && (
-                    <Link
-                      href={`/products/${p._id}?negotiate=1`}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary/10 border border-primary/25 px-3.5 text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all"
-                    >
-                      <Handshake className="h-3.5 w-3.5" />
-                      <span>Price Am</span>
-                    </Link>
-                  )}
-
                   <button
                     type="button"
                     onClick={() => onAddToCart(p._id, p.variants.length > 0)}

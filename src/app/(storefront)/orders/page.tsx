@@ -71,17 +71,13 @@ function OrdersList() {
   }, []);
 
   useEffect(() => {
-    if (!tokenStore.get()) {
-      router.replace("/login");
-      return;
-    }
     getMe()
       .then((res) => {
         setUser(res.user);
         load("buyer");
       })
-      .catch(() => router.replace("/login"));
-  }, [router, load]);
+      .catch(() => load("buyer"));
+  }, [load]);
 
   function switchTab(next: "buyer" | "seller") {
     setTab(next);
@@ -262,7 +258,7 @@ function OrdersList() {
               : "border-line bg-surface hover:border-line-strong shadow-xs"
           }`}
         >
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted block">Price Am Deals</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted block">Special Deals</span>
           <span className="text-2xl font-black text-primary mt-0.5 block">{stats.negotiated}</span>
         </button>
       </div>
@@ -299,7 +295,7 @@ function OrdersList() {
             {searchQuery || filter !== "all"
               ? "No orders match your active filter. Try resetting your search or filters."
               : tab === "buyer"
-                ? "You haven't placed any orders yet. Discover items and use Price Am to negotiate great deals!"
+                ? "You haven't placed any orders yet. Discover official jerseys and pro gear with Cash on Delivery!"
                 : "No orders received yet for your store."}
           </p>
           <div className="mt-5">
@@ -334,7 +330,7 @@ function OrdersList() {
                       {isNegotiated && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2.5 py-0.5 text-[11px] font-extrabold text-ink border border-accent/30">
                           <Handshake className="h-3 w-3 text-primary" />
-                          Price Am Deal
+                          Special Deal
                         </span>
                       )}
                     </div>
@@ -402,7 +398,7 @@ function OrdersList() {
                       <div className="sm:text-right">
                         <span className="text-[10px] uppercase font-bold tracking-wider text-muted block">Total Deal</span>
                         <span className="text-lg sm:text-xl font-extrabold text-ink">
-                          ₦{o.total.toLocaleString()}
+                          PKR {o.total.toLocaleString()}
                         </span>
                       </div>
 
@@ -430,10 +426,10 @@ function OrdersList() {
                     <div className="mt-4 rounded-xl bg-gradient-to-r from-success-soft/80 to-primary-soft/40 border border-success/30 px-3.5 py-2 flex items-center justify-between text-xs">
                       <span className="font-bold text-success flex items-center gap-1.5">
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        Price Am Savings
+                        Deal Savings
                       </span>
                       <span className="text-body font-medium">
-                        Original: <span className="line-through">₦{originalSum.toLocaleString()}</span> · You saved <strong className="text-success font-extrabold">₦{savings.toLocaleString()}</strong>
+                        Original: <span className="line-through">PKR {originalSum.toLocaleString()}</span> · You saved <strong className="text-success font-extrabold">PKR {savings.toLocaleString()}</strong>
                       </span>
                     </div>
                   )}

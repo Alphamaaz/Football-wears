@@ -1,11 +1,11 @@
 {
-  "name": "PriceAm",
-  "short_name": "PriceAm",
-  "description": "Nigeria's negotiation-first marketplace.",
+  "name": "Football Wears Pro Shop",
+  "short_name": "Football Wears",
+  "description": "Authentic Football Shirts, Club Kits, Retro Classics & Pro Boots with Cash on Delivery.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fff7f0",
-  "theme_color": "#f97316",
+  "background_color": "#064e3b",
+  "theme_color": "#10b981",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

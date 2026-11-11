@@ -2,9 +2,13 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { Handshake, Heart, MapPin, Sparkles, Star } from "lucide-react";
+import { Heart, ShieldCheck, ShoppingBag, Sparkles, Star, Trophy } from "lucide-react";
+import { useState } from "react";
 import { assetUrl, PRODUCT_IMAGE_PLACEHOLDER } from "@/lib/api";
 import type { Product } from "@/lib/products";
+import { addCartItem } from "@/lib/cart";
+import { addWishlistItem } from "@/lib/wishlist";
+import { notifyCommerceChanged } from "@/lib/commerce-events";
 
 interface ProductCardProps {
   product: Product;
@@ -12,46 +16,94 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
-  const isNegotiable = product.negotiable !== false;
-  const locationText = product.location?.state
-    ? product.location.city
-      ? `${product.location.city}, ${product.location.state}`
-      : product.location.state
-    : "Nigeria";
-  const listedDate = new Date(product.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short" });
+  const [added, setAdded] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const fallbackFootballImg = "/kits/real-madrid-2025-home.jpg";
+
+  async function handleQuickAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await addCartItem({
+        productId: product._id,
+        quantity: 1,
+        variantSelections: product.variants.length > 0 ? [{ name: product.variants[0].name, value: product.variants[0].options[0].value }] : [],
+      });
+      setAdded(true);
+      notifyCommerceChanged();
+      setTimeout(() => setAdded(false), 2000);
+    } catch {
+      // ignore
+    }
+  }
+
+  async function handleToggleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await addWishlistItem(product._id);
+      setSaved(!saved);
+      notifyCommerceChanged();
+    } catch {
+      // ignore
+    }
+  }
 
   const mobileCard = (
-    <article className="overflow-hidden rounded-[1.15rem] bg-surface shadow-[0_3px_12px_rgba(36,27,18,.10)] sm:hidden">
-      <Link href={`/products/${product._id}`} className="relative block aspect-[1.08/1] overflow-hidden bg-sunken">
+    <article className="overflow-hidden rounded-2xl border border-line bg-surface shadow-soft transition-all active:scale-[.99] sm:hidden">
+      <Link href={`/products/${product._id}`} className="relative block aspect-[1.1/1] overflow-hidden bg-sunken">
         <img
-          src={product.coverImage?.url ? assetUrl(product.coverImage.url) : PRODUCT_IMAGE_PLACEHOLDER}
+          src={product.coverImage?.url ? assetUrl(product.coverImage.url) : fallbackFootballImg}
           alt={product.coverImage?.alt ?? product.title}
           loading="lazy"
           onError={(event) => {
-            if (!event.currentTarget.src.endsWith(PRODUCT_IMAGE_PLACEHOLDER)) {
-              event.currentTarget.src = PRODUCT_IMAGE_PLACEHOLDER;
-            }
+            event.currentTarget.src = fallbackFootballImg;
           }}
-          className="h-full w-full object-contain"
+          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
         />
-        <span className="absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full bg-ink/45 text-white" aria-hidden>
-          <Heart className="h-5 w-5" strokeWidth={2.2} />
-        </span>
+        <button
+          type="button"
+          onClick={handleToggleWishlist}
+          className={`absolute right-2.5 top-2.5 grid h-9 w-9 place-items-center rounded-full backdrop-blur-md transition-colors ${
+            saved ? "bg-primary text-white" : "bg-ink/50 text-white"
+          }`}
+          aria-label="Save to Wishlist"
+        >
+          <Heart className={`h-4.5 w-4.5 ${saved ? "fill-white" : ""}`} strokeWidth={2.2} />
+        </button>
+        {product.isFeatured && (
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-ink/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+            Top Pick
+          </span>
+        )}
       </Link>
-      <div className="p-3">
-        <p className="text-lg font-bold tracking-tight text-primary">₦{product.price.toLocaleString()}</p>
+      <div className="p-3.5 space-y-2">
+        <div className="flex items-center justify-between text-[11px] text-muted">
+          <span className="font-bold uppercase tracking-wider text-primary">{product.brand || "Authentic"}</span>
+          <span className="flex items-center gap-1 font-bold text-ink">
+            <Star className="h-3 w-3 fill-accent text-accent" />
+            {product.ratingAverage.toFixed(1)}
+          </span>
+        </div>
         <Link
           href={`/products/${product._id}`}
-          className="mt-1 block whitespace-normal break-words text-[15px] font-medium leading-snug text-ink"
+          className="block font-bold text-sm leading-snug text-ink line-clamp-2 hover:text-primary"
         >
           {product.title}
         </Link>
-        <p className="mt-2 flex items-center gap-1 truncate text-[11px] text-muted">
-          <MapPin className="h-3.5 w-3.5 shrink-0 fill-muted text-muted" /> {locationText}
-        </p>
-        <div className="mt-2 flex items-center justify-between text-[11px] text-muted">
-          <span className="rounded-md bg-sunken px-2 py-1 lowercase">{product.condition === "new" ? "new" : "used"}</span>
-          <span>{listedDate}</span>
+        <div className="flex items-center justify-between pt-1">
+          <p className="text-base font-black text-ink">PKR {product.price.toLocaleString()}</p>
+          <button
+            type="button"
+            onClick={handleQuickAddToCart}
+            className={`inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all ${
+              added ? "bg-emerald-600 text-white" : "bg-primary text-white hover:bg-primary-dark"
+            }`}
+          >
+            <ShoppingBag className="h-3.5 w-3.5" />
+            <span>{added ? "Added!" : "Add"}</span>
+          </button>
         </div>
       </div>
     </article>
@@ -60,231 +112,163 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
   if (viewMode === "list") {
     return (
       <>
-      {mobileCard}
-      <article className="group hidden rounded-2xl border-2 border-emerald-500/80 bg-surface transition-all duration-300 hover:border-emerald-600 hover:shadow-lifted sm:flex sm:flex-row sm:rounded-3xl">
-        {/* Left / Top Image Container: Full-width on mobile, fixed horizontal column on sm+ */}
-        <Link
-          href={`/products/${product._id}`}
-          className="relative w-full aspect-[16/10] sm:aspect-auto sm:w-64 md:w-72 lg:w-80 shrink-0 bg-sunken overflow-hidden block"
-        >
-          <img
-            src={product.coverImage?.url ? assetUrl(product.coverImage.url) : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80"}
-            alt={product.coverImage?.alt ?? product.title}
-            loading="lazy"
-            onError={(e) => {
-              const el = e.currentTarget;
-              if (!el.src.includes("photo-1523275335684-37898b6baf30")) {
-                el.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
-              }
-            }}
-            className="h-full w-full object-contain"
-          />
-
-          {/* Featured / Condition Tag */}
-          <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1">
+        {mobileCard}
+        <article className="group hidden rounded-3xl border border-line bg-surface transition-all duration-300 hover:border-primary/40 hover:shadow-lifted sm:flex sm:flex-row overflow-hidden">
+          <Link
+            href={`/products/${product._id}`}
+            className="relative w-72 shrink-0 bg-sunken overflow-hidden block"
+          >
+            <img
+              src={product.coverImage?.url ? assetUrl(product.coverImage.url) : fallbackFootballImg}
+              alt={product.coverImage?.alt ?? product.title}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = fallbackFootballImg;
+              }}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
             {product.isFeatured && (
-              <span className="rounded-full bg-ink/90 backdrop-blur px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-soft">
-                Featured
+              <span className="absolute top-3 left-3 rounded-full bg-ink/90 backdrop-blur px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-soft">
+                Featured Kit
               </span>
             )}
-          </div>
-        </Link>
+          </Link>
 
-        {/* Right Details Container */}
-        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between min-w-0">
-          <div>
-            {/* Title & Price Top Row */}
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-4">
-              <Link href={`/products/${product._id}`} className="min-w-0 flex-1 group-hover:text-primary transition-colors">
-                <h3 className="break-words text-base font-bold leading-snug text-ink sm:text-lg md:text-xl">
+          <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between min-w-0">
+            <div>
+              <div className="flex items-center justify-between gap-2 text-xs text-muted">
+                <span className="font-extrabold uppercase tracking-wider text-primary">{product.brand} · {product.category.replace("-", " ")}</span>
+                <span className="flex items-center gap-1 font-bold text-ink">
+                  <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                  {product.ratingAverage.toFixed(1)} ({product.ratingCount} reviews)
+                </span>
+              </div>
+              <Link href={`/products/${product._id}`} className="mt-2 block">
+                <h3 className="text-lg font-bold text-ink group-hover:text-primary transition-colors">
                   {product.title}
                 </h3>
               </Link>
-              <div className="shrink-0 sm:text-right">
-                <span className="text-lg sm:text-2xl font-black text-emerald-600 block tracking-tight">
-                  ₦ {product.price.toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            {/* Description Snippet */}
-            {product.description && (
-              <p className="text-xs sm:text-sm text-muted line-clamp-2 leading-relaxed mt-2">
+              <p className="mt-2 text-xs text-body line-clamp-2 leading-relaxed">
                 {product.description}
               </p>
-            )}
-
-            {/* Attribute Pills */}
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <span className="rounded-lg bg-sunken px-3 py-1 text-xs font-semibold text-body border border-line/60">
-                {product.condition === "new" ? "Brand New" : "Local Used"}
-              </span>
-              {product.brand && (
-                <span className="rounded-lg bg-sunken px-3 py-1 text-xs font-semibold text-body border border-line/60">
-                  {product.brand}
-                </span>
-              )}
-              <span className="rounded-lg bg-sunken px-3 py-1 text-xs font-semibold text-body border border-line/60 capitalize">
-                {product.category}
-              </span>
-              {isNegotiable && (
-                <span className="rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary border border-primary/20 flex items-center gap-1">
-                  <Handshake className="h-3 w-3" />
-                  Price Am
-                </span>
-              )}
             </div>
-          </div>
 
-          {/* Footer Row: Location & Actions */}
-          <div className="flex items-center justify-between pt-3 mt-4 border-t border-line/50 text-xs text-muted">
-            <span className="inline-flex items-center gap-1.5 font-medium text-muted">
-              <MapPin className="h-3.5 w-3.5 text-muted/70" />
-              <span>{locationText}</span>
-            </span>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href={`/products/${product._id}`}
-                className="inline-flex h-8 items-center justify-center rounded-xl border border-line bg-surface px-3 text-xs font-bold text-ink hover:border-primary hover:text-primary transition-all"
-              >
-                View Details
-              </Link>
-              {isNegotiable && (
-                <Link
-                  href={`/products/${product._id}?negotiate=1`}
-                  className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-primary to-accent px-3.5 text-xs font-bold text-white shadow-soft hover:brightness-105 active:scale-95 transition-all"
-                  title="Make an offer with Price Am"
+            <div className="flex items-center justify-between pt-4 border-t border-line mt-4">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted block">Direct Shop Price</span>
+                <p className="text-2xl font-black text-ink">PKR {product.price.toLocaleString()}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleWishlist}
+                  className={`grid h-10 w-10 place-items-center rounded-xl border border-line transition-colors ${
+                    saved ? "bg-primary-soft text-primary border-primary" : "hover:bg-sunken text-muted"
+                  }`}
+                  aria-label="Wishlist"
                 >
-                  <Handshake className="h-3.5 w-3.5" />
-                  <span>Price Am</span>
+                  <Heart className={`h-4 w-4 ${saved ? "fill-primary" : ""}`} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuickAddToCart}
+                  className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-extrabold text-white transition-all ${
+                    added ? "bg-emerald-600" : "bg-primary hover:bg-primary-dark"
+                  }`}
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>{added ? "Added to Cart!" : "Add to Cart"}</span>
+                </button>
+                <Link
+                  href={`/products/${product._id}`}
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-line bg-surface px-4 text-xs font-bold text-ink hover:border-primary hover:text-primary"
+                >
+                  Details
                 </Link>
-              )}
+              </div>
             </div>
           </div>
-        </div>
-      </article>
+        </article>
       </>
     );
   }
 
-  // Grid view (Standard / 2-column on mobile)
+  // Grid view
   return (
     <>
-    {mobileCard}
-    <article className="group relative hidden h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lifted sm:flex">
-      {/* Product Image Cover */}
-      <Link href={`/products/${product._id}`} className="relative aspect-[4/3] bg-sunken overflow-hidden block">
-        <img
-          src={product.coverImage?.url ? assetUrl(product.coverImage.url) : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80"}
-          alt={product.coverImage?.alt ?? product.title}
-          loading="lazy"
-          onError={(e) => {
-            const el = e.currentTarget;
-            if (!el.src.includes("photo-1523275335684-37898b6baf30")) {
-              el.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
-            }
-          }}
-          className="h-full w-full object-contain"
-        />
+      {mobileCard}
+      <article className="group relative hidden h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lifted sm:flex">
+        {/* Cover Image */}
+        <Link href={`/products/${product._id}`} className="relative aspect-[4/3] bg-sunken overflow-hidden block">
+          <img
+            src={product.coverImage?.url ? assetUrl(product.coverImage.url) : fallbackFootballImg}
+            alt={product.coverImage?.alt ?? product.title}
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = fallbackFootballImg;
+            }}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
 
-        {/* Top Badges */}
-        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 flex flex-col gap-1 items-start">
-          {product.isFeatured && (
-            <span className="rounded-full bg-ink/90 backdrop-blur px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white shadow-soft">
-              Featured
-            </span>
-          )}
-          <span
-            className={`rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider backdrop-blur border shadow-xs ${
-              product.condition === "new"
-                ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-800"
-                : "bg-surface/90 border-line text-body"
-            }`}
-          >
-            {product.condition === "new" ? "New" : "Used"}
-          </span>
-        </div>
-
-        {/* Location Pin Bottom Left */}
-        <div className="absolute bottom-2 left-2 sm:bottom-2.5 sm:left-2.5">
-          <span className="inline-flex items-center gap-0.5 sm:gap-1 rounded-full bg-black/60 backdrop-blur-sm px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-white">
-            <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white/80" />
-            <span className="truncate max-w-[70px] xs:max-w-[85px] sm:max-w-[110px]">{product.location?.state || "Nigeria"}</span>
-          </span>
-        </div>
-
-        {/* Negotiable Tag Bottom Right */}
-        {isNegotiable && (
-          <div className="absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5">
-            <span className="inline-flex items-center gap-0.5 sm:gap-1 rounded-full bg-white/95 backdrop-blur px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-black text-primary shadow-soft border border-line">
-              <Handshake className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" strokeWidth={2.2} />
-              <span className="hidden xs:inline">Price Am</span>
-              <span className="xs:hidden">Offer</span>
-            </span>
-          </div>
-        )}
-      </Link>
-
-      {/* Product Details */}
-      <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between gap-2 sm:gap-3">
-        <div className="space-y-1 min-w-0">
-          {/* Store Name & Ratings */}
-          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-muted">
-            <span className="truncate hover:text-primary transition-colors font-medium max-w-[70%]">
-              {product.storeName}
-            </span>
-            {product.ratingCount > 0 ? (
-              <span className="flex items-center gap-0.5 font-bold text-ink shrink-0">
-                <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-accent text-accent" />
-                {product.ratingAverage.toFixed(1)}
-              </span>
-            ) : (
-              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted/70 truncate">
-                {product.category}
+          {/* Badges */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
+            {product.isFeatured && (
+              <span className="rounded-full bg-ink/90 backdrop-blur px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-soft">
+                Featured
               </span>
             )}
-          </div>
-
-          {/* Title */}
-          <Link href={`/products/${product._id}`} className="block">
-            <h3 className="break-words text-xs font-bold leading-snug text-ink transition-colors group-hover:text-primary sm:text-sm">
-              {product.title}
-            </h3>
-          </Link>
-        </div>
-
-        {/* Pricing & Quick Action */}
-        <div className="pt-1.5 sm:pt-2 border-t border-line/60 flex items-center justify-between gap-1.5 sm:gap-2">
-          <div className="min-w-0">
-            <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-bold text-muted block leading-none">
-              Price
-            </span>
-            <span className="text-xs sm:text-base font-black text-ink mt-0.5 block tracking-tight truncate">
-              ₦{product.price.toLocaleString()}
+            <span className="rounded-full bg-surface/90 backdrop-blur px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-body border border-line">
+              {product.brand}
             </span>
           </div>
 
-          {isNegotiable ? (
-            <Link
-              href={`/products/${product._id}?negotiate=1`}
-              className="inline-flex h-7 sm:h-8 items-center gap-1 rounded-xl bg-primary/10 border border-primary/20 px-2 sm:px-3 text-[10px] sm:text-xs font-black text-primary hover:bg-primary hover:text-white transition-all shadow-xs active:scale-95 shrink-0"
-              title="Negotiate with Price Am"
-            >
-              <Sparkles className="h-3 w-3" />
-              <span>Price Am</span>
+          <button
+            type="button"
+            onClick={handleToggleWishlist}
+            className={`absolute top-2.5 right-2.5 grid h-8 w-8 place-items-center rounded-full backdrop-blur-md transition-colors ${
+              saved ? "bg-primary text-white" : "bg-black/40 hover:bg-black/60 text-white"
+            }`}
+            aria-label="Wishlist"
+          >
+            <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
+          </button>
+        </Link>
+
+        {/* Details */}
+        <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex items-center justify-between text-[11px] text-muted">
+              <span className="font-semibold capitalize truncate">{product.category.replace("-", " ")}</span>
+              <span className="flex items-center gap-1 font-bold text-ink shrink-0">
+                <Star className="h-3 w-3 fill-accent text-accent" />
+                {product.ratingAverage.toFixed(1)}
+              </span>
+            </div>
+            <Link href={`/products/${product._id}`} className="block">
+              <h3 className="font-bold text-sm leading-snug text-ink group-hover:text-primary transition-colors line-clamp-2">
+                {product.title}
+              </h3>
             </Link>
-          ) : (
-            <Link
-              href={`/products/${product._id}`}
-              className="inline-flex h-7 sm:h-8 items-center rounded-xl border border-line bg-surface px-2 sm:px-3 text-[10px] sm:text-xs font-bold text-ink hover:border-primary hover:text-primary transition-colors shadow-xs shrink-0"
+          </div>
+
+          <div className="pt-2 border-t border-line/60 flex items-center justify-between gap-2">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-muted block">Price</span>
+              <p className="text-base font-black text-ink">PKR {product.price.toLocaleString()}</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleQuickAddToCart}
+              className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-white transition-all active:scale-95 ${
+                added ? "bg-emerald-600" : "bg-primary hover:bg-primary-dark"
+              }`}
             >
-              <span>View</span>
-            </Link>
-          )}
+              <ShoppingBag className="h-3.5 w-3.5" />
+              <span>{added ? "Added!" : "Add to Cart"}</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
     </>
   );
 }
